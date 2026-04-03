@@ -1,0 +1,30 @@
+name: pull_request
+on: [pull_request]
+jobs:
+  run_tests_and_lint:
+    name: "Run Tests and Lint"
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Install dependencies
+        run: make local/install
+
+      - name: Running Lint
+        run: make local/lint
+
+      - name: Running tests
+        run: make local/tests

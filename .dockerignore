@@ -1,0 +1,46 @@
+# Git
+.git
+.gitignore
+
+# IDE / Editor
+.vscode
+.idea
+.editorconfig
+
+# Claude
+.claude
+
+# CI/CD
+.github
+
+# Documentation
+*.md
+LICENSE
+
+# Python cache
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.Python
+
+# Testing artifacts
+.pytest_cache
+.ruff_cache
+htmlcov
+.coverage
+coverage.xml
+
+# Environment (security - inject at runtime via docker-compose)
+.env
+.env.*
+
+# Docker (avoid recursive copy)
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Dev files (mounted via volume in dev, not needed in prod)
+tests
+Makefile
+env.template

@@ -1,0 +1,57 @@
+[tool.poetry]
+name = "fast-api-boilerplate-project"
+version = "0.1.0"
+description = "it's a simple and useful boilerplate for python projects using fast api framework"
+authors = ["Authors Name <authorsmail@>"]
+license = "MIT"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.14"
+fastapi = "0.135.2"
+uvicorn = "0.42.0"
+alembic = "^1.16.1"
+psycopg = { extras = ['binary'], version = '^3.2.4' }
+
+[tool.poetry.group.dev.dependencies]
+pytest = "9.0.2"
+pytest-cov = "^7.0.0"
+ruff = "^0.15.4"
+httpx = "0.28.1"
+testcontainers = {extras = ["postgres"], version = "^4.10.0"}
+sqlalchemy = "^2.0.0"
+
+[tool.pytest.ini_options]
+testpaths = ["tests",]
+pythonpath = ["src",]
+
+[tool.coverage.run]
+branch = true
+omit = ["*/tests/*", "run.py"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 100
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.ruff]
+line-length = 120
+target-version = "py314"
+exclude = ["run.py", "migration"]
+
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "S"]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

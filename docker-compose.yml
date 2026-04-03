@@ -1,0 +1,30 @@
+services:
+  fast-api-boilerplate-project:
+    tty: true
+    image: fast-api-boilerplate-project
+    stdin_open: true
+    build:
+      context: .
+      target: "development"
+    volumes:
+      - ".:/src"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    env_file: .env
+    environment:
+      TESTCONTAINERS_HOST_OVERRIDE: "host.docker.internal"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - fast-api-boilerplate-project-db
+  fast-api-boilerplate-project-db:
+    image: postgres:13.3-alpine
+    volumes:
+      - fast_api_boilerplate_project_db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fast_api_boilerplate_project_db
+    ports:
+      - "5433:5432"
+volumes:
+  fast_api_boilerplate_project_db:
