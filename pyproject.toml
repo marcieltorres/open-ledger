@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "fast-api-boilerplate-project"
+name = "open-ledger"
 version = "0.1.0"
-description = "it's a simple and useful boilerplate for python projects using fast api framework"
+description = "A financial ledger service implementing double-entry bookkeeping as an isolated microservice"
 authors = ["Authors Name <authorsmail@>"]
 license = "MIT"
 package-mode = false

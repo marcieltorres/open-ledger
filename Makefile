@@ -13,8 +13,8 @@ ifneq (,$(wildcard ./.env))
     export
 endif
 
-APP_NAME="fast-api-boilerplate-project"
-IMAGE_NAME="fast-api-boilerplate-project"
+APP_NAME="open-ledger"
+IMAGE_NAME="open-ledger"
 VERSION="latest"
 MAIN_ENTRYPOINT="run.py"
 

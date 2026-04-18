@@ -10,6 +10,9 @@
 # Claude
 .claude
 
+# Docs
+.docs
+
 # CI/CD
 .github
 

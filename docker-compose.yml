@@ -1,7 +1,7 @@
 services:
-  fast-api-boilerplate-project:
+  open-ledger:
     tty: true
-    image: fast-api-boilerplate-project
+    image: open-ledger
     stdin_open: true
     build:
       context: .
@@ -15,16 +15,16 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - fast-api-boilerplate-project-db
-  fast-api-boilerplate-project-db:
+      - open-ledger-db
+  open-ledger-db:
     image: postgres:13.3-alpine
     volumes:
-      - fast_api_boilerplate_project_db:/var/lib/postgresql/data
+      - open_ledger_db:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: fast_api_boilerplate_project_db
+      POSTGRES_DB: open_ledger_db
     ports:
       - "5433:5432"
 volumes:
-  fast_api_boilerplate_project_db:
+  open_ledger_db:

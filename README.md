@@ -1,6 +1,22 @@
-# fast-api-boilerplate-project
+# Open Ledger
 
-it's a simple and useful boilerplate for python projects using FastAPI framework
+A financial ledger service built with FastAPI and PostgreSQL, implementing **double-entry bookkeeping** as an isolated microservice.
+
+> **Learning-focused.** This repository exists primarily as a study reference for financial ledger design — double-entry bookkeeping, immutable audit trails, event-driven architecture, and incremental balance strategies.
+
+## What is this?
+
+A financial ledger is the authoritative, append-only record of all financial events in a system. Every balance is the result of explicit debit and credit entries — nothing is ever overwritten or deleted.
+
+This project implements that model as a standalone service:
+
+- Every financial event (sale, fee, settlement, chargeback) is recorded as a set of balanced debit/credit entries
+- Account balances are maintained incrementally via database triggers — no aggregation at query time
+- A **World Account** represents the external world, keeping double-entry intact when money enters or leaves the system
+- The service consumes events from an upstream system and never reads its database directly
+- All event handlers are idempotent; duplicate events are safely ignored
+
+For the full design — data model, chart of accounts, transaction flows, balance strategy — see [`.docs/open-ledger-full-spec.md`](.docs/open-ledger-full-spec.md).
 
 ## Technology and Resources
 
@@ -20,17 +36,15 @@ it's a simple and useful boilerplate for python projects using FastAPI framework
 
 ### Environment variables
 
-*Use this section to explain each env variable available on your application*
-
 Variable | Description | Available Values | Default Value | Required
 --- | --- | --- | --- | ---
-ENV | The application enviroment |  `dev / test / qa / prod` | `dev` | Yes
-PYTHONPATH | Provides guidance to the Python interpreter about where to find libraries and applications | [ref](https://docs.python.org/3/using/cmdline.html#envvar-PYTHONPATH) | `.` | Yes
-DATABASE_USER | The database user |  `a valid user` | `postgres` | Yes
-DATABASE_PASS | The database user password |  `a valid password` | `postgres` | Yes
-DATABASE_PORT | The database port |  `a valid port number` | `5433` | Yes
-DATABASE_NAME | The database name |  `a valid database name` | `fast_api_boilerplate_project_db` | Yes
-DATABASE_ENDPOINT | The database endpoint |  `a valid database endpoint` | `localhost` | Yes
+ENV | The application environment | `dev / test / qa / prod` | `dev` | Yes
+PYTHONPATH | Python interpreter path guidance | [ref](https://docs.python.org/3/using/cmdline.html#envvar-PYTHONPATH) | `.` | Yes
+DATABASE_USER | The database user | `a valid user` | `postgres` | Yes
+DATABASE_PASS | The database user password | `a valid password` | `postgres` | Yes
+DATABASE_PORT | The database port | `a valid port number` | `5433` | Yes
+DATABASE_NAME | The database name | `a valid database name` | `open_ledger_db` | Yes
+DATABASE_ENDPOINT | The database endpoint | `a valid database endpoint` | `localhost` | Yes
 
 *Note: When you run the install command (using docker or locally), a .env file will be created automatically based on [env.template](env.template)*
 
@@ -103,7 +117,7 @@ make docker/image/build/distroless
 **Running the distroless image:**
 
 ```bash
-docker run -p 8000:8000 --env-file .env fast-api-boilerplate-project:latest-distroless
+docker run -p 8000:8000 --env-file .env open-ledger:latest-distroless
 ```
 
 For more information about Chainguard images, visit the [official documentation](https://edu.chainguard.dev/chainguard/chainguard-images/).
