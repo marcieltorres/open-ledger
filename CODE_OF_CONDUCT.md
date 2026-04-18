@@ -1,8 +1,8 @@
 # Code of Conduct
 
-To be a truly great community, `fast-api-boilerplate-project` needs to welcome developers from all walks of life, with different backgrounds, and with a wide range of experience. A diverse and friendly community will have more great ideas, more unique perspectives, and produce more great code. We will work diligently to make the `fast-api-boilerplate-project` community welcoming to everyone.
+To be a truly great community, `open-ledger` needs to welcome developers from all walks of life, with different backgrounds, and with a wide range of experience. A diverse and friendly community will have more great ideas, more unique perspectives, and produce more great code. We will work diligently to make the `open-ledger` community welcoming to everyone.
 
-To give clarity of what is expected of our members, `fast-api-boilerplate-project` has adopted the code of conduct defined by [contributor-covenant.org](https://www.contributor-covenant.org). This document is used across many open source communities, and we think it articulates our values well. The full text is copied below:
+To give clarity of what is expected of our members, `open-ledger` has adopted the code of conduct defined by [contributor-covenant.org](https://www.contributor-covenant.org). This document is used across many open source communities, and we think it articulates our values well. The full text is copied below:
 
 ### Contributor Code of Conduct v2.1
 
