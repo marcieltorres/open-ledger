@@ -1,4 +1,9 @@
 # Open Ledger
+[![GitHub stars](https://img.shields.io/github/stars/marcieltorres/open-ledger?style=social)](https://github.com/marcieltorres/open-ledger/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/marcieltorres/open-ledger?style=social)](https://github.com/marcieltorres/open-ledger/network/members)
+[![GitHub issues](https://img.shields.io/github/issues/marcieltorres/open-ledger)](https://github.com/marcieltorres/open-ledger/issues)
+[![GitHub license](https://img.shields.io/github/license/marcieltorres/open-ledger)](https://github.com/marcieltorres/open-ledger/blob/main/LICENSE)
+[![codecov](https://codecov.io/gh/marcieltorres/open-ledger/graph/badge.svg?token=V0T0I3SI3P)](https://codecov.io/gh/marcieltorres/open-ledger)
 
 A financial ledger service built with FastAPI and PostgreSQL, implementing **double-entry bookkeeping** as an isolated microservice.
 
