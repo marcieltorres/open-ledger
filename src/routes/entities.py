@@ -4,11 +4,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from src.config.database import get_db
+from src.exceptions.account import AccountNotFoundError, InvalidTemplateError
+from src.exceptions.entity import DuplicateEntityError, EntityNotFoundError
 from src.model.schemas.accounts import AccountProvision, AccountResponse, AccountUpdate
 from src.model.schemas.entities import EntityCreate, EntityResponse, EntityUpdate
 from src.services.account import AccountService
 from src.services.entity import EntityService
-from src.services.errors import AccountNotFoundError, DuplicateEntityError, EntityNotFoundError, InvalidTemplateError
 
 router = APIRouter(prefix="/entities", tags=["entities"])
 

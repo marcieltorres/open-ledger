@@ -55,7 +55,7 @@ make migration/downgrade                       # Revert last migration
 - **`src/model/schemas/`** — Pydantic request/response schemas (one file per domain entity)
 - **`src/routes/`** — FastAPI routers (one file per resource); zero business logic here
 - **`src/services/`** — domain services with business rules; use repositories for data access
-- **`src/services/errors.py`** — domain exceptions mapped to HTTP status codes in the routes
+- **`src/exceptions/`** — domain exceptions, one file per domain (e.g. `entity.py`, `account.py`); `__init__.py` re-exports all for convenience
 - **`src/repositories/base.py`** — `BaseRepository[T]` with generic CRUD (`get_by_id`, `get_all`, `create`, `update`, `delete`, `exists`)
 - **`src/repositories/`** — concrete repositories extending BaseRepository (one file per domain entity)
 
@@ -94,7 +94,7 @@ Multi-stage `Dockerfile` with three targets:
 - **Camada de serviço**: toda lógica de negócio fica em `src/services/*.py`; rotas só fazem parse do request, chamam o serviço e formatam a resposta; serviços usam repositórios para data access
 - **Modelos SQLAlchemy**: herdam `BaseModel` de `src/model/base_model.py`; usar `Mapped[T]` para todas as colunas; nunca usar `float` para valores monetários — sempre `Decimal`; quando o nome do atributo colide com o namespace do SQLAlchemy (ex: `metadata`), usar sufixo `_` no atributo e mapear para o nome correto na coluna (`mapped_column("metadata", ...)`)
 - **Schemas Pydantic**: usar `validation_alias` para mapear atributos com sufixo `_` do ORM (ex: `Field(None, validation_alias="metadata_")`); sempre usar `ConfigDict(from_attributes=True)` nos schemas de resposta
-- **Erros de domínio**: exceções customizadas em `src/services/errors.py`; capturadas nas rotas e convertidas para `HTTPException` com o status code correto
+- **Erros de domínio**: exceções ficam em `src/exceptions/` com um arquivo por domínio (ex: `src/exceptions/entity.py`, `src/exceptions/account.py`); `src/exceptions/__init__.py` re-exporta todas para conveniência; cada exceção estende `Exception` com corpo `pass`; capturadas nas rotas e convertidas para `HTTPException` com o status code correto; usar imports diretos por domínio (ex: `from src.exceptions.entity import EntityNotFoundError`), não o pacote raiz
 - **Migrations**: criadas com `make migration/revision message="..."` (requer banco rodando); `migration/env.py` deve importar todos os models para que o autogenerate funcione; uma migration por PR; nunca editar após merge
 - **Testes de integração**: usam testcontainers (Postgres real); a fixture `get_db` é sobrescrita via `app.dependency_overrides[get_db] = lambda: self.db_session`; o `db_session` é function-scoped com rollback automático ao final
 - **Colima (macOS)**: configurar `DOCKER_HOST=unix://${HOME}/.colima/default/docker.sock` e `TESTCONTAINERS_RYUK_DISABLED=true` no `.env`

@@ -4,10 +4,10 @@ from uuid import uuid4
 
 from sqlalchemy.exc import IntegrityError
 
+from src.exceptions.entity import DuplicateEntityError, EntityNotFoundError
 from src.model.entity import Entity
 from src.model.schemas.entities import EntityCreate, EntityUpdate
 from src.services.entity import EntityService
-from src.services.errors import DuplicateEntityError, EntityNotFoundError
 
 
 def _make_entity(**kwargs) -> Entity:

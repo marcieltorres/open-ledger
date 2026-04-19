@@ -1,11 +1,3 @@
-class EntityNotFoundError(Exception):
-    pass
-
-
-class DuplicateEntityError(Exception):
-    pass
-
-
 class AccountNotFoundError(Exception):
     pass
 

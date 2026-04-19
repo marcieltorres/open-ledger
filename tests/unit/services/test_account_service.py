@@ -2,10 +2,11 @@ from unittest import TestCase
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
+from src.exceptions.account import AccountNotFoundError, InvalidTemplateError
+from src.exceptions.entity import EntityNotFoundError
 from src.model.chart_of_accounts import AccountType, ChartOfAccounts
 from src.model.schemas.accounts import AccountCreate, AccountProvision, AccountUpdate
 from src.services.account import AccountService
-from src.services.errors import AccountNotFoundError, EntityNotFoundError, InvalidTemplateError
 
 
 def _make_account(**kwargs) -> ChartOfAccounts:
