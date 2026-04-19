@@ -43,13 +43,21 @@ make migration/downgrade                       # Revert last migration
 ## Architecture
 
 ### Request Flow
-`run.py` → `src/api.py` (FastAPI app) → routes → SQLAlchemy sessions
+`run.py` → `src/api.py` → `src/routes/` → `src/services/` → `src/repositories/` → SQLAlchemy session
 
 ### Key Modules
 
-- **`src/api.py`** — FastAPI app instance, health check endpoint, route registration
-- **`src/config/settings.py`** — `Settings` class wrapping ConfigParser; reads `settings.conf` (INI format) with sections `[default]`, `[dev]`, `[test]`, `[qa]`, `[prod]`; selects section via `ENV` environment variable
-- **`src/model/base_model.py`** — SQLAlchemy `DeclarativeBase` with UUID primary key, `created_at`/`updated_at` timestamps; all models inherit this
+- **`src/api.py`** — FastAPI app instance, health check endpoint, router registration
+- **`src/config/settings.py`** — `Settings` class wrapping ConfigParser; reads `settings.conf` (INI format) com sections `[default]`, `[dev]`, `[test]`, `[qa]`, `[prod]`; selects section via `ENV`; `settings.get_from_env(name)` reads env vars
+- **`src/config/database.py`** — SQLAlchemy engine, `SessionLocal`, `get_db()` FastAPI dependency (commit on success, rollback on exception)
+- **`src/model/base_model.py`** — SQLAlchemy `DeclarativeBase` with UUID PK, `created_at`/`updated_at`; all models inherit this
+- **`src/model/`** — ORM models (one file per domain entity)
+- **`src/model/schemas/`** — Pydantic request/response schemas (one file per domain entity)
+- **`src/routes/`** — FastAPI routers (one file per resource); zero business logic here
+- **`src/services/`** — domain services with business rules; use repositories for data access
+- **`src/services/errors.py`** — domain exceptions mapped to HTTP status codes in the routes
+- **`src/repositories/base.py`** — `BaseRepository[T]` with generic CRUD (`get_by_id`, `get_all`, `create`, `update`, `delete`, `exists`)
+- **`src/repositories/`** — concrete repositories extending BaseRepository (one file per domain entity)
 
 ### Ledger Domain
 
@@ -79,6 +87,17 @@ Multi-stage `Dockerfile` with three targets:
 - `development` — full Poetry environment
 - `production` — slim image (requirements.txt export, no Poetry)
 - `production-distroless` — Chainguard minimal image for security
+
+## Padrões de desenvolvimento
+
+- **Estrutura de rotas**: recursos pertencem a `src/routes/<resource>.py`; sub-recursos de uma entidade ficam em `/entities/{id}/<sub-resource>`; schemas Pydantic ficam em `src/model/schemas/<resource>.py`
+- **Camada de serviço**: toda lógica de negócio fica em `src/services/*.py`; rotas só fazem parse do request, chamam o serviço e formatam a resposta; serviços usam repositórios para data access
+- **Modelos SQLAlchemy**: herdam `BaseModel` de `src/model/base_model.py`; usar `Mapped[T]` para todas as colunas; nunca usar `float` para valores monetários — sempre `Decimal`; quando o nome do atributo colide com o namespace do SQLAlchemy (ex: `metadata`), usar sufixo `_` no atributo e mapear para o nome correto na coluna (`mapped_column("metadata", ...)`)
+- **Schemas Pydantic**: usar `validation_alias` para mapear atributos com sufixo `_` do ORM (ex: `Field(None, validation_alias="metadata_")`); sempre usar `ConfigDict(from_attributes=True)` nos schemas de resposta
+- **Erros de domínio**: exceções customizadas em `src/services/errors.py`; capturadas nas rotas e convertidas para `HTTPException` com o status code correto
+- **Migrations**: criadas com `make migration/revision message="..."` (requer banco rodando); `migration/env.py` deve importar todos os models para que o autogenerate funcione; uma migration por PR; nunca editar após merge
+- **Testes de integração**: usam testcontainers (Postgres real); a fixture `get_db` é sobrescrita via `app.dependency_overrides[get_db] = lambda: self.db_session`; o `db_session` é function-scoped com rollback automático ao final
+- **Colima (macOS)**: configurar `DOCKER_HOST=unix://${HOME}/.colima/default/docker.sock` e `TESTCONTAINERS_RYUK_DISABLED=true` no `.env`
 
 ## Configuration
 
