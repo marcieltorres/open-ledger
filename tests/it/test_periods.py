@@ -137,6 +137,10 @@ class PeriodReopenITTest(TestCase):
         response = self.client.patch(f"/periods/{created['id']}/reopen")
         self.assertEqual(response.status_code, 422)
 
+    def test_reopen_not_found_returns_404(self):
+        response = self.client.patch(f"/periods/{uuid4()}/reopen")
+        self.assertEqual(response.status_code, 404)
+
 
 class PeriodLockITTest(TestCase):
     db_session = None
@@ -169,3 +173,7 @@ class PeriodLockITTest(TestCase):
         created = self.client.post("/periods", json={"period_date": "2025-01-01"}).json()
         response = self.client.patch(f"/periods/{created['id']}/lock", json={"locked_by": "admin"})
         self.assertEqual(response.status_code, 422)
+
+    def test_lock_not_found_returns_404(self):
+        response = self.client.patch(f"/periods/{uuid4()}/lock", json={"locked_by": "admin"})
+        self.assertEqual(response.status_code, 404)

@@ -111,6 +111,13 @@ class PeriodServiceCloseTest(TestCase):
         with self.assertRaises(InvalidPeriodTransitionError):
             self.service.close(period.id, PeriodCloseRequest(closed_by="admin"))
 
+    def test_close_with_notes_updates_notes(self):
+        period = _make_period(status=PeriodStatus.open)
+        self.service._repo.get_by_id.return_value = period
+        self.service._repo.save.return_value = period
+        self.service.close(period.id, PeriodCloseRequest(closed_by="admin", notes="end of month"))
+        self.assertEqual(period.notes, "end of month")
+
     def test_close_locked_period_raises(self):
         period = _make_period(status=PeriodStatus.locked)
         self.service._repo.get_by_id.return_value = period
