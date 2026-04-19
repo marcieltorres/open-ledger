@@ -157,3 +157,8 @@ poetry.lock
 # Secrets and credentials
 *.pem
 *.credentials
+
+# Claude Code
+.claude/logs/
+.claude/plans/
+.claude/settings.local.json

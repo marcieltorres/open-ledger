@@ -39,3 +39,13 @@ class SettingsTest(TestCase):
     def test_get_setting_value_from_dev_env_with_success(self):
         dev_settings = Settings(file='./tests/unit/config/settings_to_test.conf')
         self.assertEqual(dev_settings.get('app_var'), 'dev-app-var')
+
+    @mock.patch.dict(os.environ, {'MY_VAR': 'hello'}, clear=False)
+    def test_get_from_env_returns_env_var(self):
+        self.assertEqual(self.settings.get_from_env('MY_VAR'), 'hello')
+
+    def test_get_from_env_returns_default_when_not_set(self):
+        self.assertEqual(self.settings.get_from_env('__UNSET_VAR__', 'fallback'), 'fallback')
+
+    def test_get_from_env_returns_none_when_not_set_and_no_default(self):
+        self.assertIsNone(self.settings.get_from_env('__UNSET_VAR__'))
