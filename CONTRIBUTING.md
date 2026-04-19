@@ -45,6 +45,35 @@ I | [isort](https://pypi.org/project/isort/)
 N | [pep8-naming](https://pypi.org/project/pep8-naming/)
 S | [flake8-bandit](https://pypi.org/project/flake8-bandit/)
 
+# Exception Conventions
+
+Domain exceptions live in `src/exceptions/`, with one file per domain:
+
+- `src/exceptions/entity.py` — exceptions related to the entity domain
+- `src/exceptions/account.py` — exceptions related to the account domain
+
+Rules:
+- Each exception class extends `Exception` with a `pass` body
+- `src/exceptions/__init__.py` re-exports all exceptions for convenience
+- Source files must use direct domain-specific imports (e.g. `from src.exceptions.entity import EntityNotFoundError`), not the package root
+- Routes catch domain exceptions and convert them to `HTTPException` with the appropriate HTTP status code
+
+Example:
+
+```python
+# src/exceptions/entity.py
+class EntityNotFoundError(Exception):
+    pass
+
+# src/routes/entities.py
+from src.exceptions.entity import EntityNotFoundError
+
+try:
+    entity = service.get_by_id(entity_id)
+except EntityNotFoundError as e:
+    raise HTTPException(status_code=404, detail=str(e))
+```
+
 # Integration Tests with Database
 
 We use [Testcontainers](https://testcontainers.com/) for database integration tests. A PostgreSQL container starts automatically when tests run.
