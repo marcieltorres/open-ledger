@@ -2,12 +2,13 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from src.exceptions.account import AccountNotFoundError, InvalidTemplateError
+from src.exceptions.entity import EntityNotFoundError
 from src.model.chart_of_accounts import ChartOfAccounts
 from src.model.entity import Entity
 from src.model.schemas.accounts import AccountProvision, AccountUpdate
 from src.repositories.account import AccountRepository
 from src.repositories.base import BaseRepository
-from src.services.errors import AccountNotFoundError, EntityNotFoundError, InvalidTemplateError
 from src.services.templates import get_template
 
 

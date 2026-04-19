@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from src.services.errors import InvalidTemplateError
+from src.exceptions.account import InvalidTemplateError
 from src.services.templates import get_template
 
 

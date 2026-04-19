@@ -1,6 +1,6 @@
+from src.exceptions.account import InvalidTemplateError
 from src.model.chart_of_accounts import AccountType
 from src.model.schemas.accounts import AccountCreate
-from src.services.errors import InvalidTemplateError
 
 _COMMON = [
     AccountCreate(code="9.9.998", name="Transfer", account_type=AccountType.equity, currency="BRL"),

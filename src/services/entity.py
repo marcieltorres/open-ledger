@@ -3,10 +3,10 @@ from uuid import UUID
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from src.exceptions.entity import DuplicateEntityError, EntityNotFoundError
 from src.model.entity import Entity
 from src.model.schemas.entities import EntityCreate, EntityUpdate
 from src.repositories.base import BaseRepository
-from src.services.errors import DuplicateEntityError, EntityNotFoundError
 
 
 class EntityService:
