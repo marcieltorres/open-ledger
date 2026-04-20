@@ -1,5 +1,9 @@
 name: pull_request
-on: [pull_request]
+on:
+  pull_request:
+  push:
+    branches:
+      - main
 jobs:
   run_tests_and_lint:
     name: "Run Tests and Lint"
