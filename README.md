@@ -54,6 +54,14 @@ Each entity has its own chart of accounts — a set of accounts that record ever
 
 Represents a business day in the ledger. A period must be `open` to accept new entries. The status progresses one-way: `open` → `closed` → `locked`. Once locked, the period is immutable for audit purposes.
 
+### Transaction
+
+The header record for a financial event. Every transaction belongs to one entity and groups one or more debit/credit entries that must balance (Σ debits = Σ credits). Transactions are identified by an `idempotency_key` that prevents duplicate processing of the same event. Once committed, a transaction is never modified — corrections are posted as new reversing transactions.
+
+### Transaction Entry
+
+A single debit or credit line within a transaction. Each entry references an account from the entity's chart of accounts, records the `amount` and `currency`, and carries an `entry_type` of either `debit` or `credit`. Entries are immutable; they are never updated or deleted after the transaction commits.
+
 ---
 
 ## How to install, run and test
