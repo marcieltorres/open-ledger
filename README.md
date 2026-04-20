@@ -37,6 +37,25 @@ For the full design — data model, chart of accounts, transaction flows, balanc
 
 *Please pay attention on **pre-requisites** resources that you must install/configure.*
 
+## Ledger Entities
+
+### Entity
+
+Represents any participant in the ledger — seller, buyer, payment facilitator, or any other financial actor. Each entity gets its own isolated chart of accounts upon creation. Entities can be organized hierarchically (e.g. sub-merchants under a payfac) via `parent_entity_id`.
+
+### Chart of Accounts
+
+Each entity has its own chart of accounts — a set of accounts that record every financial movement. Accounts are never shared across entities. Account types follow standard bookkeeping: `asset`, `liability`, `revenue`, `expense`, and `equity`. Balances are maintained incrementally in the same DB transaction as each entry — never recomputed from history. Two special system accounts exist globally:
+
+- **`9.9.999` — World Account**: used whenever money crosses the system boundary (deposits, withdrawals, settlements).
+- **`9.9.998` — Transfer Account**: used for internal transfers between entities. The sum across all entities is always zero.
+
+### Accounting Period
+
+Represents a business day in the ledger. A period must be `open` to accept new entries. The status progresses one-way: `open` → `closed` → `locked`. Once locked, the period is immutable for audit purposes.
+
+---
+
 ## How to install, run and test
 
 ### Environment variables
