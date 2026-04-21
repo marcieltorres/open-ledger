@@ -4,7 +4,7 @@ from unittest import TestCase
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
-from src.exceptions.transaction import DoubleEntryImbalanceError
+from src.exceptions.transaction import DoubleEntryImbalanceError, InvalidStatusTransitionError, TransactionNotFoundError
 from src.model.chart_of_accounts import AccountType, ChartOfAccounts
 from src.model.schemas.transactions import TransactionCreate, TransactionEntryCreate
 from src.services.transaction import TransactionService
@@ -240,3 +240,64 @@ class TransactionServicePostTest(TestCase):
 
         self.assertEqual(result, existing)
         self.session.add.assert_not_called()
+
+
+class VoidTransactionTest(TestCase):
+    def setUp(self):
+        self.session = MagicMock()
+        self.service = TransactionService(self.session)
+        self.service._repo = MagicMock()
+
+    def test_void_pending_sets_status_voided(self):
+        txn = MagicMock()
+        txn.status = "pending"
+        self.service._repo.get_with_entries.return_value = txn
+
+        result = self.service.void(uuid4(), uuid4())
+
+        self.assertEqual(result.status, "voided")
+
+    def test_void_committed_raises_invalid_status_transition(self):
+        txn = MagicMock()
+        txn.status = "committed"
+        self.service._repo.get_with_entries.return_value = txn
+
+        with self.assertRaises(InvalidStatusTransitionError):
+            self.service.void(uuid4(), uuid4())
+
+    def test_void_not_found_raises_transaction_not_found(self):
+        self.service._repo.get_with_entries.return_value = None
+
+        with self.assertRaises(TransactionNotFoundError):
+            self.service.void(uuid4(), uuid4())
+
+    def test_void_does_not_call_session_execute(self):
+        txn = MagicMock()
+        txn.status = "pending"
+        self.service._repo.get_with_entries.return_value = txn
+
+        self.service.void(uuid4(), uuid4())
+
+        self.session.execute.assert_not_called()
+
+
+class ComputeDeltaReversalTest(TestCase):
+    """Verifies that mirroring debit↔credit undoes the original balance delta."""
+
+    def setUp(self):
+        self.service = _make_service()
+
+    def test_debit_original_undone_by_credit_mirror(self):
+        original_delta = self.service._compute_delta("asset", "debit", Decimal("100"))
+        mirror_delta = self.service._compute_delta("asset", "credit", Decimal("100"))
+        self.assertEqual(original_delta + mirror_delta, Decimal("0"))
+
+    def test_credit_original_undone_by_debit_mirror(self):
+        original_delta = self.service._compute_delta("revenue", "credit", Decimal("100"))
+        mirror_delta = self.service._compute_delta("revenue", "debit", Decimal("100"))
+        self.assertEqual(original_delta + mirror_delta, Decimal("0"))
+
+    def test_liability_credit_undone_by_debit_mirror(self):
+        original_delta = self.service._compute_delta("liability", "credit", Decimal("50"))
+        mirror_delta = self.service._compute_delta("liability", "debit", Decimal("50"))
+        self.assertEqual(original_delta + mirror_delta, Decimal("0"))
