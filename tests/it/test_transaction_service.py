@@ -24,10 +24,14 @@ _SALE_ENTRIES = [
 
 def _provision_accounts(session, entity_id):
     accounts = [
-        ChartOfAccounts(entity_id=entity_id, code="1.1.001", name="Receivables", account_type=AccountType.asset, currency="BRL"),
-        ChartOfAccounts(entity_id=entity_id, code="3.1.001", name="Revenue",     account_type=AccountType.revenue, currency="BRL"),
-        ChartOfAccounts(entity_id=entity_id, code="4.1.001", name="MDR Expense", account_type=AccountType.expense, currency="BRL"),
-        ChartOfAccounts(entity_id=entity_id, code="4.1.002", name="Fee Expense", account_type=AccountType.expense, currency="BRL"),
+        ChartOfAccounts(entity_id=entity_id, code="1.1.001", name="Receivables",
+                        account_type=AccountType.asset, currency="BRL"),
+        ChartOfAccounts(entity_id=entity_id, code="3.1.001", name="Revenue",
+                        account_type=AccountType.revenue, currency="BRL"),
+        ChartOfAccounts(entity_id=entity_id, code="4.1.001", name="MDR Expense",
+                        account_type=AccountType.expense, currency="BRL"),
+        ChartOfAccounts(entity_id=entity_id, code="4.1.002", name="Fee Expense",
+                        account_type=AccountType.expense, currency="BRL"),
     ]
     for a in accounts:
         session.add(a)

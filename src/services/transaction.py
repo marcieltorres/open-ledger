@@ -74,7 +74,9 @@ class TransactionService:
         for entry in payload.entries:
             account = self._account_repo.get_by_entity_and_code(entity_id, entry.account_code)
             if account is None:
-                raise AccountCodeNotFoundError(f"Account code '{entry.account_code}' not found for entity '{entity_id}'")
+                raise AccountCodeNotFoundError(
+                    f"Account code '{entry.account_code}' not found for entity '{entity_id}'"
+                )
             accounts.append(account)
 
         self._validate_double_entry(payload.entries)

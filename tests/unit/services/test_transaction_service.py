@@ -11,7 +11,9 @@ from src.services.transaction import TransactionService
 
 
 def _entry(entry_type: str, amount: str, currency: str = "BRL") -> TransactionEntryCreate:
-    return TransactionEntryCreate(account_code="1.1.001", entry_type=entry_type, amount=Decimal(amount), currency=currency)
+    return TransactionEntryCreate(
+        account_code="1.1.001", entry_type=entry_type, amount=Decimal(amount), currency=currency
+    )
 
 
 def _make_account(account_type: AccountType = AccountType.asset, balance: str = "0") -> ChartOfAccounts:
