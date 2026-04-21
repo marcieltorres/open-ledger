@@ -6,6 +6,7 @@ from src.exceptions.period import (
     PeriodClosedError,
     PeriodNotFoundError,
 )
+from src.exceptions.receivable import InvalidReceivableStatusTransitionError, ReceivableNotFoundError
 from src.exceptions.transaction import (
     AccountCodeNotFoundError,
     CurrencyMismatchError,
@@ -29,4 +30,6 @@ __all__ = [
     "DoubleEntryImbalanceError",
     "IdempotencyConflictError",
     "AccountCodeNotFoundError",
+    "ReceivableNotFoundError",
+    "InvalidReceivableStatusTransitionError",
 ]

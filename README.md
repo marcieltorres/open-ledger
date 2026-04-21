@@ -62,6 +62,23 @@ The header record for a financial event. Every transaction belongs to one entity
 
 A single debit or credit line within a transaction. Each entry references an account from the entity's chart of accounts, records the `amount` and `currency`, and carries an `entry_type` of either `debit` or `credit`. Entries are immutable; they are never updated or deleted after the transaction commits.
 
+### Receivable
+
+Represents a future cash inflow — typically the net amount a seller is entitled to receive after fees are deducted from a sale. A receivable is created atomically with its originating sale transaction (same DB commit): when the `POST /entities/{id}/transactions` body includes a `receivable` field, both records are written together or not at all.
+
+**Lifecycle:**
+
+```
+pending ──settlement completed──▶ settled
+        ──transaction reversed──▶ cancelled
+```
+
+- **`pending`** — created at the time of the sale; awaiting settlement.
+- **`settled`** — the funds were transferred to the seller; `actual_settlement_date` is set.
+- **`cancelled`** — the originating transaction was reversed (e.g. chargeback); no funds will be paid.
+
+Status transitions are one-way and validated by the service — attempting to settle a cancelled receivable raises an error.
+
 ---
 
 ## How to install, run and test
