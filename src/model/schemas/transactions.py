@@ -6,11 +6,19 @@ from pydantic import BaseModel, ConfigDict
 
 
 class TransactionEntryCreate(BaseModel):
-    account_id: UUID
+    account_code: str
     entry_type: str
     amount: Decimal
     currency: str = "BRL"
     custom_data: dict | None = None
+
+
+class AccountRef(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    code: str
+    name: str
 
 
 class TransactionEntryResponse(BaseModel):
@@ -18,17 +26,16 @@ class TransactionEntryResponse(BaseModel):
 
     id: UUID
     transaction_id: UUID
-    account_id: UUID
     entry_type: str
     amount: Decimal
     currency: str
     custom_data: dict | None
+    account: AccountRef
     created_at: datetime
     updated_at: datetime | None
 
 
 class TransactionCreate(BaseModel):
-    idempotency_key: str
     transaction_type: str
     effective_date: date
     entries: list[TransactionEntryCreate]
@@ -53,3 +60,7 @@ class TransactionResponse(BaseModel):
     custom_data: dict | None
     created_at: datetime
     updated_at: datetime | None
+
+
+class TransactionDetailResponse(TransactionResponse):
+    entries: list[TransactionEntryResponse]

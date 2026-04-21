@@ -6,7 +6,13 @@ from src.exceptions.period import (
     PeriodClosedError,
     PeriodNotFoundError,
 )
-from src.exceptions.transaction import TransactionNotFoundError
+from src.exceptions.transaction import (
+    AccountCodeNotFoundError,
+    CurrencyMismatchError,
+    DoubleEntryImbalanceError,
+    IdempotencyConflictError,
+    TransactionNotFoundError,
+)
 
 __all__ = [
     "EntityNotFoundError",
@@ -19,4 +25,8 @@ __all__ = [
     "InvalidPeriodTransitionError",
     "DuplicatePeriodError",
     "TransactionNotFoundError",
+    "CurrencyMismatchError",
+    "DoubleEntryImbalanceError",
+    "IdempotencyConflictError",
+    "AccountCodeNotFoundError",
 ]

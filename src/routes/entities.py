@@ -92,3 +92,4 @@ def update_account(entity_id: UUID, account_id: UUID, payload: AccountUpdate, se
     except (EntityNotFoundError, AccountNotFoundError) as e:
         raise HTTPException(status_code=404, detail=str(e))
     return AccountResponse.model_validate(account)
+
