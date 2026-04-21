@@ -81,6 +81,46 @@ Status transitions are one-way and validated by the service — attempting to se
 
 ---
 
+## Lifecycle Operations
+
+All write endpoints require an `Idempotency-Key` header.
+
+### Anticipation
+
+Moves a receivable from `Receivables` into `Receivables Anticipated` and books the anticipation fee as an expense. Does not change the receivable status.
+
+### Settlement
+
+Records the cash transfer from the clearing network and marks the receivable as `settled`.
+
+### Deposit / Withdrawal
+
+Record inbound and outbound transfers between the entity's checking account and an external clearing network. The World account (`9.9.9xx`) is resolved from the `clearing_network` field (`STR → 9.9.901`, `CIP-PIX → 9.9.902`, `COMPE → 9.9.903`, default `9.9.999`).
+
+### Void
+
+Cancels a `pending` transaction before entries are posted. No balance changes occur; status becomes `voided`. Attempting to void a `committed` transaction returns HTTP 422.
+
+### Reverse
+
+Creates a new `reversal` transaction that mirrors every entry of the original (debit↔credit), restoring all balances. If the original had a linked receivable, it is cancelled. Recommended idempotency key format: `"reversal:{original_transaction_id}"`.
+
+### Transaction Status Lifecycle
+
+```
+pending ──void──▶ voided
+         (committed on creation — immutable; use reverse to undo)
+```
+
+### Receivable Status Lifecycle
+
+```
+pending ──settlement──▶ settled
+        ──reverse─────▶ cancelled
+```
+
+---
+
 ## How to install, run and test
 
 ### Environment variables
