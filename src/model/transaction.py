@@ -12,6 +12,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.model.base_model import BaseModel
 
 if TYPE_CHECKING:
+    from src.model.receivable import Receivable
     from src.model.transaction_entry import TransactionEntry
 
 
@@ -29,3 +30,4 @@ class Transaction(BaseModel):
     custom_data: Mapped[dict | None] = mapped_column("custom_data", JSONB, nullable=True)
 
     entries: Mapped[list[TransactionEntry]] = relationship("TransactionEntry", lazy="select")
+    receivable: Mapped[Receivable | None] = relationship("Receivable", lazy="select", uselist=False)

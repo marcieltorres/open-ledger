@@ -18,6 +18,7 @@ from src.model.transaction_entry import TransactionEntry
 from src.repositories.account import AccountRepository
 from src.repositories.transaction import TransactionRepository
 from src.services.period import PeriodService
+from src.services.receivable import ReceivableService
 
 _PRECISION = Decimal("0.01")
 
@@ -89,7 +90,7 @@ class TransactionService:
             entity_id=entity_id,
             idempotency_key=idempotency_key,
             status="committed",
-            **payload.model_dump(exclude={"entries"}),
+            **payload.model_dump(exclude={"entries", "receivable"}),
         )
         self._session.add(transaction)
         self._session.flush()
@@ -103,6 +104,10 @@ class TransactionService:
 
         if transaction.status != "pending":
             self._apply_balance_updates(payload.entries, accounts)
+
+        if payload.receivable is not None:
+            recv_svc = ReceivableService(self._session)
+            recv_svc.create(entity_id, transaction.id, payload.receivable)
 
         return transaction
 

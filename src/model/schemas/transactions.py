@@ -4,6 +4,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
+from src.model.schemas.receivables import ReceivableCreate, ReceivableResponse
+
 
 class TransactionEntryCreate(BaseModel):
     account_code: str
@@ -43,6 +45,7 @@ class TransactionCreate(BaseModel):
     reference_type: str | None = None
     description: str | None = None
     custom_data: dict | None = None
+    receivable: ReceivableCreate | None = None
 
 
 class TransactionResponse(BaseModel):
@@ -58,6 +61,7 @@ class TransactionResponse(BaseModel):
     reference_type: str | None
     description: str | None
     custom_data: dict | None
+    receivable: ReceivableResponse | None = None
     created_at: datetime
     updated_at: datetime | None
 
