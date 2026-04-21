@@ -24,11 +24,11 @@ class TransactionRepository(BaseRepository[Transaction]):
     def get_by_idempotency_key(self, key: str) -> Transaction | None:
         return self.db.query(Transaction).filter(Transaction.idempotency_key == key).first()
 
-    def get_with_entries(self, entity_id: UUID, txn_id: UUID) -> Transaction | None:
+    def get_with_entries(self, entity_id: UUID, transaction_id: UUID) -> Transaction | None:
         return (
             self.db.query(Transaction)
-            .options(joinedload(Transaction.entries))
-            .filter(Transaction.entity_id == entity_id, Transaction.id == txn_id)
+            .options(joinedload(Transaction.entries).joinedload(TransactionEntry.account))
+            .filter(Transaction.entity_id == entity_id, Transaction.id == transaction_id)
             .first()
         )
 
