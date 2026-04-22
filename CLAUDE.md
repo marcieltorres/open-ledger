@@ -99,6 +99,49 @@ Multi-stage `Dockerfile` with three targets:
 - **Testes de integração**: usam testcontainers (Postgres real); a fixture `get_db` é sobrescrita via `app.dependency_overrides[get_db] = lambda: self.db_session`; o `db_session` é function-scoped com rollback automático ao final
 - **Colima (macOS)**: configurar `DOCKER_HOST=unix://${HOME}/.colima/default/docker.sock` e `TESTCONTAINERS_RYUK_DISABLED=true` no `.env`
 
+## Transaction Lifecycle Patterns
+
+### World Account Resolution
+
+When money crosses the system boundary (deposits, withdrawals, settlements), the World account is resolved from `clearing_network`:
+
+| `clearing_network` | Account |
+|--------------------|---------|
+| `"STR"` | `9.9.901` |
+| `"CIP-PIX"` | `9.9.902` |
+| `"COMPE"` | `9.9.903` |
+| `None` / unknown | `9.9.999` |
+
+Implemented as `WORLD_ACCOUNTS` dict in `src/services/transaction.py`.
+
+### Idempotency Key Convention for Reversals
+
+The client-recommended idempotency key format for reversal requests is `"reversal:{original_transaction_id}"`. The service does not enforce this format — any unique string is accepted via the `Idempotency-Key` header.
+
+### Void vs Reverse
+
+| Operation | When to use | Effect |
+|-----------|-------------|--------|
+| `void` | Transaction is `pending`, no entries committed | Sets `status = "voided"`, no balance changes |
+| `reverse` | Transaction is `committed` | Creates a new `reversal` transaction with mirrored entries (debit↔credit), balance is restored |
+
+Void never produces accounting entries. Reverse always creates a new immutable transaction.
+
+### Transaction Status Lifecycle
+
+```
+pending → voided   (via void)
+pending → committed (via normal post with committed status)
+committed → (no mutation; use reverse to undo)
+```
+
+### Receivable Status Lifecycle
+
+```
+pending → settled    (via POST /settlements)
+pending → cancelled  (via POST /transactions/{id}/reverse)
+```
+
 ## Configuration
 
 **`settings.conf`** — app name/description per environment (INI format).  

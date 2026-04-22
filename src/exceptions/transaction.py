@@ -24,3 +24,7 @@ class IdempotencyConflictError(Exception):
 
 class AccountCodeNotFoundError(Exception):
     pass
+
+
+class InvalidStatusTransitionError(Exception):
+    pass

@@ -12,6 +12,7 @@ from src.exceptions.transaction import (
     CurrencyMismatchError,
     DoubleEntryImbalanceError,
     IdempotencyConflictError,
+    InvalidStatusTransitionError,
     TransactionNotFoundError,
 )
 
@@ -30,6 +31,7 @@ __all__ = [
     "DoubleEntryImbalanceError",
     "IdempotencyConflictError",
     "AccountCodeNotFoundError",
+    "InvalidStatusTransitionError",
     "ReceivableNotFoundError",
     "InvalidReceivableStatusTransitionError",
 ]
