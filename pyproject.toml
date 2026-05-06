@@ -9,7 +9,7 @@ package-mode = false
 [tool.poetry.dependencies]
 python = "^3.14"
 fastapi = "0.136.1"
-uvicorn = "0.44.0"
+uvicorn = "0.46.0"
 alembic = "^1.16.1"
 psycopg = { extras = ['binary'], version = '^3.2.4' }
 sqlalchemy = "^2.0.0"
