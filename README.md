@@ -97,6 +97,27 @@ Records the cash transfer from the clearing network and marks the receivable as 
 
 Record inbound and outbound transfers between the entity's checking account and an external clearing network. The World account (`9.9.9xx`) is resolved from the `clearing_network` field (`STR → 9.9.901`, `CIP-PIX → 9.9.902`, `COMPE → 9.9.903`, default `9.9.999`).
 
+### Transfer
+
+Moves funds between two entities inside the ledger in a **single atomic write** — both transactions are flushed and committed together; neither can exist without the other.
+
+**Why top-level?** A transfer belongs to two entities simultaneously, so it cannot be a sub-resource of either one. `POST /transfers` is the only endpoint that crosses entity boundaries in a single commit.
+
+**Accounting entries:**
+
+| Entity | Account | Type | Amount |
+|--------|---------|------|--------|
+| Sender | `9.9.998` Transfer | debit | amount |
+| Sender | `1.1.001` Checking | credit | amount |
+| Receiver | `1.1.001` Checking | debit | amount |
+| Receiver | `9.9.998` Transfer | credit | amount |
+
+**Invariant:** Σ `9.9.998` across all entities = 0 always. The debit in the sender is exactly offset by the credit in the receiver, so the net effect on the Transfer account system-wide is zero.
+
+**Example — PIX between two BaaS customers:** When customer A sends a PIX to customer B (both accounts within the same ledger), the ledger books the Transfer debit on A and the Transfer credit on B atomically. Upstream systems only need to post one `POST /transfers` call; the ledger guarantees both sides land or neither does.
+
+**Idempotency:** a single `Idempotency-Key` header is split internally into `transfer:send:{key}` and `transfer:recv:{key}`. Replaying the same key is safe — the service detects both keys already exist and returns the original pair.
+
 ### Void
 
 Cancels a `pending` transaction before entries are posted. No balance changes occur; status becomes `voided`. Attempting to void a `committed` transaction returns HTTP 422.

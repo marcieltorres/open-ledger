@@ -15,6 +15,7 @@ from src.exceptions.transaction import (
     InvalidStatusTransitionError,
     TransactionNotFoundError,
 )
+from src.exceptions.transfer import TransferAccountNotFoundError, TransferEntityNotFoundError
 
 __all__ = [
     "EntityNotFoundError",
@@ -34,4 +35,6 @@ __all__ = [
     "InvalidStatusTransitionError",
     "ReceivableNotFoundError",
     "InvalidReceivableStatusTransitionError",
+    "TransferEntityNotFoundError",
+    "TransferAccountNotFoundError",
 ]
