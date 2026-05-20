@@ -142,6 +142,25 @@ pending → settled    (via POST /settlements)
 pending → cancelled  (via POST /transactions/{id}/reverse)
 ```
 
+### Internal Transfers — Two-Entity / One-Commit
+
+`POST /transfers` is the **only endpoint** in the system that writes atomically across two entities in a single `session.commit()`. The flow:
+
+1. Validate both entities and their `9.9.998` Transfer accounts exist.
+2. Call `TransactionService.post()` for the sender (Transfer debit, Checking credit) — this flushes but does not commit.
+3. Call `TransactionService.post()` for the receiver (Checking debit, Transfer credit) — also flushes.
+4. Both rows land in the DB on the single commit triggered by `get_db()`.
+
+If any step raises, the entire unit of work rolls back — you can never end up with only half a transfer.
+
+**Idempotency key convention:** A single `Idempotency-Key` header generates two internal keys:
+- `"transfer:send:{idempotency_key}"` — for the sender transaction
+- `"transfer:recv:{idempotency_key}"` — for the receiver transaction
+
+If both keys already exist the service returns the existing pair without creating new entries.
+
+**Transfer account invariant:** Account `9.9.998` is debited in A and credited in B by the same amount, so Σ Transfer across all entities = 0 always.
+
 ## Configuration
 
 **`settings.conf`** — app name/description per environment (INI format).  
