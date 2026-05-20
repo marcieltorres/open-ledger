@@ -1,3 +1,4 @@
+from datetime import date
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -8,8 +9,10 @@ from src.exceptions.account import AccountNotFoundError, InvalidTemplateError
 from src.exceptions.entity import DuplicateEntityError, EntityNotFoundError
 from src.model.schemas.accounts import AccountProvision, AccountResponse, AccountUpdate
 from src.model.schemas.entities import EntityCreate, EntityResponse, EntityUpdate
+from src.model.schemas.statement import AccountBalance, StatementResponse
 from src.services.account import AccountService
 from src.services.entity import EntityService
+from src.services.statement import StatementService
 
 router = APIRouter(prefix="/entities", tags=["entities"])
 
@@ -92,4 +95,27 @@ def update_account(entity_id: UUID, account_id: UUID, payload: AccountUpdate, se
     except (EntityNotFoundError, AccountNotFoundError) as e:
         raise HTTPException(status_code=404, detail=str(e))
     return AccountResponse.model_validate(account)
+
+
+@router.get("/{entity_id}/balance", response_model=list[AccountBalance])
+def get_balance(entity_id: UUID, session: Session = Depends(get_db)):
+    service = StatementService(session)
+    try:
+        return service.get_balance(entity_id)
+    except EntityNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/{entity_id}/statement", response_model=StatementResponse)
+def get_statement(
+    entity_id: UUID,
+    start_date: date,
+    end_date: date,
+    session: Session = Depends(get_db),
+):
+    service = StatementService(session)
+    try:
+        return service.build_statement(entity_id, start_date, end_date)
+    except EntityNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 

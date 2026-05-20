@@ -161,6 +161,24 @@ If both keys already exist the service returns the existing pair without creatin
 
 **Transfer account invariant:** Account `9.9.998` is debited in A and credited in B by the same amount, so Σ Transfer across all entities = 0 always.
 
+## Statement API & Balance Snapshots
+
+### Opening balance logic
+
+`StatementService.build_statement()` computes the opening balance per asset account:
+1. Look for the latest `account_balance_snapshots` row where `snapshot_date < start_date`.
+2. If found: use `snapshot.balance` directly.
+3. If not found: sum all committed `transaction_entries` for that account before `start_date` using `_asset_delta`.
+
+The running balance in the statement tracks **net asset position** — only entries on `account_type = "asset"` accounts count (debit = +, credit = −). Revenue/expense/equity entries are included in `movements` but do not move the running balance.
+
+### Performance targets
+
+| Endpoint | Target |
+|----------|--------|
+| `GET /entities/{id}/balance` | < 5 ms (direct `current_balance` read) |
+| `GET /entities/{id}/statement` | < 500 ms per month |
+
 ## Configuration
 
 **`settings.conf`** — app name/description per environment (INI format).  
