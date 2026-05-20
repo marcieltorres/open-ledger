@@ -150,53 +150,15 @@ pending ──settlement──▶ settled
 
 ### Current balance
 
-Retrieve the current balance of all accounts for an entity. Each row returns the live `current_balance` value maintained by the application layer — no entry aggregation happens at query time.
-
-```
-GET /entities/{entity_id}/balance
-```
-
-Response: array of account objects with `account_id`, `code`, `name`, `account_type`, and `current_balance`.
+Returns the live `current_balance` of every account in the entity's chart of accounts. Balances are maintained incrementally by the application layer — no entry aggregation happens at query time.
 
 ### Statement
 
-Generate a period statement with a running balance for a given date range.
+Returns a period statement (`start_date` / `end_date`) with a per-transaction running balance and a summary of `opening_balance`, `total_in`, `total_out`, and `closing_balance`. Each entry lists the movements (all debit/credit lines of that transaction) and the `balance_after`.
 
-```
-GET /entities/{entity_id}/statement?start_date=2025-12-01&end_date=2025-12-31
-```
+The running balance tracks the entity's **net asset position** — only `asset`-type account entries move it (debit = +, credit = −). Revenue, expense, and equity entries appear in `movements` but do not affect the running total.
 
-Response format:
-
-```json
-{
-  "entity_id": "...",
-  "period": { "start_date": "2025-12-01", "end_date": "2025-12-31" },
-  "summary": {
-    "opening_balance": 0.00,
-    "total_in": 100.00,
-    "total_out": 3.77,
-    "closing_balance": 96.23
-  },
-  "entries": [
-    {
-      "date": "2025-12-10",
-      "transaction_id": "...",
-      "type": "sale",
-      "description": "Sale #...",
-      "movements": [
-        { "account": "Receivables",    "entry_type": "debit",  "amount": 100.00 },
-        { "account": "Revenue - Sales","entry_type": "credit", "amount": 100.00 }
-      ],
-      "balance_after": 100.00
-    }
-  ]
-}
-```
-
-**Opening balance logic:** the service first looks for an `account_balance_snapshot` where `snapshot_date < start_date`; if found, it uses `snapshot.balance` directly. If not found, it computes the balance by summing all committed entries before `start_date`. This fallback ensures correctness for new entities or periods without snapshots.
-
-**Running balance:** tracks the net asset position — only entries on `asset` accounts move the running balance (debit = +, credit = −). All accounts appear in `movements` for audit purposes.
+Opening balance resolution: the service looks for an `account_balance_snapshot` dated before `start_date`; if found, it uses that value directly. If not, it falls back to summing all committed entries before `start_date`.
 
 ---
 
