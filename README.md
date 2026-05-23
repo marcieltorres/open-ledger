@@ -52,7 +52,7 @@ Each entity has its own chart of accounts — a set of accounts that record ever
 
 ### Accounting Period
 
-Represents a business day in the ledger. A period must be `open` to accept new entries. The status progresses one-way: `open` → `closed` → `locked`. Once locked, the period is immutable for audit purposes.
+Represents a business day in the ledger. New entries are accepted by default; creating a period record with `closed` or `locked` status blocks any new entries for that date. The status progresses one-way: `open` → `closed` → `locked`. Once locked, the period is immutable for audit purposes.
 
 ### Transaction
 
