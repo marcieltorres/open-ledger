@@ -1,4 +1,4 @@
-from datetime import date, datetime, timezone
+from datetime import date
 from decimal import Decimal
 from unittest import TestCase
 from uuid import uuid4
@@ -7,7 +7,6 @@ from fastapi.testclient import TestClient
 
 from src.api import app
 from src.config.database import get_db
-from src.model.accounting_period import AccountingPeriod, PeriodStatus
 from src.model.chart_of_accounts import AccountType, ChartOfAccounts
 from src.model.entity import Entity
 
@@ -19,15 +18,6 @@ def _make_entity(session):
     session.add(entity)
     session.flush()
     return entity
-
-
-def _open_period(session, period_date: date):
-    period = AccountingPeriod(
-        period_date=period_date, status=PeriodStatus.open, opened_at=datetime.now(timezone.utc)
-    )
-    session.add(period)
-    session.flush()
-    return period
 
 
 def _provision_entity_accounts(session, entity_id, include_transfer: bool = True):
@@ -67,8 +57,6 @@ class TransferITTest(TestCase):
     def setUp(self):
         app.dependency_overrides[get_db] = lambda: self.db_session
         self.client = TestClient(app)
-
-        _open_period(self.db_session, date.fromisoformat(_EFFECTIVE_DATE))
 
         self.sender = _make_entity(self.db_session)
         self.receiver = _make_entity(self.db_session)

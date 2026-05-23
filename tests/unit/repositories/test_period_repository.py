@@ -32,3 +32,26 @@ class PeriodRepositoryGetOpenForDateTest(TestCase):
         self.session.query.return_value.filter.return_value.first.return_value = None
         result = self.repo.get_open_for_date(date(2025, 12, 1))
         self.assertIsNone(result)
+
+
+class PeriodRepositoryGetClosedOrLockedForDateTest(TestCase):
+    def setUp(self):
+        self.session = MagicMock()
+        self.repo = PeriodRepository(self.session)
+
+    def test_returns_closed_period_for_date(self):
+        period = _make_period(status=PeriodStatus.closed)
+        self.session.query.return_value.filter.return_value.first.return_value = period
+        result = self.repo.get_closed_or_locked_for_date(date(2025, 12, 1))
+        self.assertEqual(result, period)
+
+    def test_returns_locked_period_for_date(self):
+        period = _make_period(status=PeriodStatus.locked)
+        self.session.query.return_value.filter.return_value.first.return_value = period
+        result = self.repo.get_closed_or_locked_for_date(date(2025, 12, 1))
+        self.assertEqual(result, period)
+
+    def test_returns_none_when_no_blocked_period(self):
+        self.session.query.return_value.filter.return_value.first.return_value = None
+        result = self.repo.get_closed_or_locked_for_date(date(2025, 12, 1))
+        self.assertIsNone(result)

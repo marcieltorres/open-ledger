@@ -90,6 +90,27 @@ class PeriodServiceValidateOpenTest(TestCase):
             self.service.validate_open(date(2025, 12, 1))
 
 
+class PeriodServiceValidateNotBlockedTest(TestCase):
+    def setUp(self):
+        self.session = MagicMock()
+        self.service = PeriodService(self.session)
+        self.service._repo = MagicMock()
+
+    def test_allows_when_no_period_exists(self):
+        self.service._repo.get_closed_or_locked_for_date.return_value = None
+        self.service.validate_not_blocked(date(2025, 12, 1))
+
+    def test_raises_when_period_is_closed(self):
+        self.service._repo.get_closed_or_locked_for_date.return_value = _make_period(status=PeriodStatus.closed)
+        with self.assertRaises(PeriodClosedError):
+            self.service.validate_not_blocked(date(2025, 12, 1))
+
+    def test_raises_when_period_is_locked(self):
+        self.service._repo.get_closed_or_locked_for_date.return_value = _make_period(status=PeriodStatus.locked)
+        with self.assertRaises(PeriodClosedError):
+            self.service.validate_not_blocked(date(2025, 12, 1))
+
+
 class PeriodServiceCloseTest(TestCase):
     def setUp(self):
         self.session = MagicMock()

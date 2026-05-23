@@ -47,6 +47,11 @@ class PeriodService:
         if period is None:
             raise PeriodClosedError(f"No open period for date '{period_date}'")
 
+    def validate_not_blocked(self, period_date: date) -> None:
+        period = self._repo.get_closed_or_locked_for_date(period_date)
+        if period is not None:
+            raise PeriodClosedError(f"Period for date '{period_date}' is {period.status}")
+
     def close(self, period_id: UUID, payload: PeriodCloseRequest) -> AccountingPeriod:
         period = self.get_by_id(period_id)
         if period.status != PeriodStatus.open:

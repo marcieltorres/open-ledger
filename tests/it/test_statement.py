@@ -1,4 +1,4 @@
-from datetime import date, datetime, timezone
+from datetime import date
 from decimal import Decimal
 from unittest import TestCase
 from uuid import uuid4
@@ -8,7 +8,6 @@ from fastapi.testclient import TestClient
 from src.api import app
 from src.config.database import get_db
 from src.model.account_balance_snapshot import AccountBalanceSnapshot
-from src.model.accounting_period import AccountingPeriod, PeriodStatus
 from src.model.chart_of_accounts import AccountType, ChartOfAccounts
 from src.model.entity import Entity
 
@@ -20,15 +19,6 @@ def _make_entity(session) -> Entity:
     session.add(entity)
     session.flush()
     return entity
-
-
-def _open_period(session, period_date: date) -> AccountingPeriod:
-    period = AccountingPeriod(
-        period_date=period_date, status=PeriodStatus.open, opened_at=datetime.now(timezone.utc)
-    )
-    session.add(period)
-    session.flush()
-    return period
 
 
 def _provision_accounts(session, entity_id) -> dict[str, ChartOfAccounts]:
@@ -75,7 +65,6 @@ class GetBalanceITTest(TestCase):
 
     def test_balance_after_sale_shows_updated_balance(self):
         _provision_accounts(self.db_session, self.entity.id)
-        _open_period(self.db_session, date.fromisoformat(_DATE))
 
         self.client.post(
             f"/entities/{self.entity_id}/transactions",
@@ -109,7 +98,6 @@ class GetStatementITTest(TestCase):
         self.entity = _make_entity(self.db_session)
         self.entity_id = str(self.entity.id)
         _provision_accounts(self.db_session, self.entity.id)
-        _open_period(self.db_session, date.fromisoformat(_DATE))
 
     def tearDown(self):
         app.dependency_overrides.clear()
