@@ -2,17 +2,30 @@ from datetime import date
 from decimal import Decimal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, computed_field
 
 
-class AccountBalance(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    account_id: UUID
+class BalanceBreakdownItem(BaseModel):
     code: str
     name: str
-    account_type: str
-    current_balance: Decimal
+    balance: Decimal
+
+    @computed_field
+    @property
+    def rounded(self) -> Decimal:
+        return self.balance.quantize(Decimal("0.01"))
+
+
+class EntityBalanceResponse(BaseModel):
+    entity_id: UUID
+    balance: Decimal
+    as_of: date
+    breakdown: list[BalanceBreakdownItem]
+
+    @computed_field
+    @property
+    def rounded(self) -> Decimal:
+        return self.balance.quantize(Decimal("0.01"))
 
 
 class MovementLine(BaseModel):

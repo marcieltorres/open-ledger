@@ -150,7 +150,11 @@ pending ──settlement──▶ settled
 
 ### Current balance
 
-Returns the live `current_balance` of every account in the entity's chart of accounts. Balances are maintained incrementally by the application layer — no entry aggregation happens at query time.
+Returns the entity's net asset position: the sum of `current_balance` across all `asset`-type accounts. Balances are maintained incrementally by the application layer — no entry aggregation happens at query time.
+
+The optional `?as_of=YYYY-MM-DD` parameter returns the historical balance at a past date using the same snapshot-first resolution strategy as the statement endpoint. Future dates are rejected with HTTP 422.
+
+The response includes a `breakdown` of each asset account's individual balance alongside the aggregated total. Both `balance` (full decimal precision) and `rounded` (2 decimal places) are returned for convenience.
 
 ### Statement
 

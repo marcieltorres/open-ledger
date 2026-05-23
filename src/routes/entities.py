@@ -9,7 +9,7 @@ from src.exceptions.account import AccountNotFoundError, InvalidTemplateError
 from src.exceptions.entity import DuplicateEntityError, EntityNotFoundError
 from src.model.schemas.accounts import AccountProvision, AccountResponse, AccountUpdate
 from src.model.schemas.entities import EntityCreate, EntityResponse, EntityUpdate
-from src.model.schemas.statement import AccountBalance, StatementResponse
+from src.model.schemas.statement import EntityBalanceResponse, StatementResponse
 from src.services.account import AccountService
 from src.services.entity import EntityService
 from src.services.statement import StatementService
@@ -97,11 +97,13 @@ def update_account(entity_id: UUID, account_id: UUID, payload: AccountUpdate, se
     return AccountResponse.model_validate(account)
 
 
-@router.get("/{entity_id}/balance", response_model=list[AccountBalance])
-def get_balance(entity_id: UUID, session: Session = Depends(get_db)):
+@router.get("/{entity_id}/balance", response_model=EntityBalanceResponse)
+def get_balance(entity_id: UUID, as_of: date | None = None, session: Session = Depends(get_db)):
+    if as_of is not None and as_of > date.today():
+        raise HTTPException(status_code=422, detail="as_of cannot be a future date")
     service = StatementService(session)
     try:
-        return service.get_balance(entity_id)
+        return service.get_entity_balance(entity_id, as_of)
     except EntityNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 

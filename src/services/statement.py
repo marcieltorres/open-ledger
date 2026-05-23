@@ -8,7 +8,8 @@ from src.exceptions.entity import EntityNotFoundError
 from src.model.chart_of_accounts import ChartOfAccounts
 from src.model.entity import Entity
 from src.model.schemas.statement import (
-    AccountBalance,
+    BalanceBreakdownItem,
+    EntityBalanceResponse,
     MovementLine,
     StatementEntry,
     StatementPeriod,
@@ -63,19 +64,27 @@ class StatementService:
             total += _asset_delta(account.account_type, entry.entry_type, entry.amount)
         return total
 
-    def get_balance(self, entity_id: UUID) -> list[AccountBalance]:
+    def get_entity_balance(self, entity_id: UUID, as_of: date | None) -> EntityBalanceResponse:
         self._require_entity(entity_id)
         accounts = self._account_repo.get_by_entity(entity_id)
-        return [
-            AccountBalance(
-                account_id=account.id,
-                code=account.code,
-                name=account.name,
-                account_type=account.account_type,
-                current_balance=account.current_balance,
+        asset_accounts = [a for a in accounts if a.account_type == "asset"]
+        effective_date = as_of or date.today()
+
+        breakdown = [
+            BalanceBreakdownItem(
+                code=a.code,
+                name=a.name,
+                balance=a.current_balance if as_of is None else self._opening_balance_for_account(a, as_of),
             )
-            for account in accounts
+            for a in asset_accounts
         ]
+
+        return EntityBalanceResponse(
+            entity_id=entity_id,
+            balance=sum((item.balance for item in breakdown), Decimal(0)),
+            as_of=effective_date,
+            breakdown=breakdown,
+        )
 
     def build_statement(self, entity_id: UUID, start_date: date, end_date: date) -> StatementResponse:
         self._require_entity(entity_id)
