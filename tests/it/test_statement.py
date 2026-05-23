@@ -50,22 +50,16 @@ class GetBalanceITTest(TestCase):
     def tearDown(self):
         app.dependency_overrides.clear()
 
-    def test_balance_with_no_accounts_returns_empty(self):
+    def test_balance_with_no_accounts_returns_zero(self):
         response = self.client.get(f"/entities/{self.entity_id}/balance")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), [])
+        data = response.json()
+        self.assertEqual(data["entity_id"], self.entity_id)
+        self.assertEqual(Decimal(data["balance"]), Decimal("0"))
+        self.assertIsNotNone(data["as_of"])
 
-    def test_balance_returns_provisioned_accounts(self):
+    def test_balance_only_sums_asset_accounts(self):
         _provision_accounts(self.db_session, self.entity.id)
-        response = self.client.get(f"/entities/{self.entity_id}/balance")
-        self.assertEqual(response.status_code, 200)
-        codes = {a["code"] for a in response.json()}
-        self.assertIn("1.1.001", codes)
-        self.assertIn("3.1.001", codes)
-
-    def test_balance_after_sale_shows_updated_balance(self):
-        _provision_accounts(self.db_session, self.entity.id)
-
         self.client.post(
             f"/entities/{self.entity_id}/transactions",
             json={
@@ -78,11 +72,37 @@ class GetBalanceITTest(TestCase):
             },
             headers={"Idempotency-Key": str(uuid4())},
         )
-
         response = self.client.get(f"/entities/{self.entity_id}/balance")
         self.assertEqual(response.status_code, 200)
-        recv = next(a for a in response.json() if a["code"] == "1.1.001")
-        self.assertEqual(Decimal(recv["current_balance"]), Decimal("100.00"))
+        data = response.json()
+        self.assertEqual(Decimal(data["balance"]), Decimal("100.00"))
+        codes = {item["code"] for item in data["breakdown"]}
+        self.assertIn("1.1.001", codes)
+        self.assertNotIn("3.1.001", codes)
+
+    def test_balance_with_as_of_returns_historical(self):
+        _provision_accounts(self.db_session, self.entity.id)
+        self.client.post(
+            f"/entities/{self.entity_id}/transactions",
+            json={
+                "transaction_type": "sale",
+                "effective_date": _DATE,
+                "entries": [
+                    {"account_code": "1.1.001", "entry_type": "debit", "amount": "200.00", "currency": "BRL"},
+                    {"account_code": "3.1.001", "entry_type": "credit", "amount": "200.00", "currency": "BRL"},
+                ],
+            },
+            headers={"Idempotency-Key": str(uuid4())},
+        )
+        response = self.client.get(f"/entities/{self.entity_id}/balance", params={"as_of": "2025-12-09"})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(Decimal(data["balance"]), Decimal("0"))
+        self.assertEqual(data["as_of"], "2025-12-09")
+
+    def test_balance_future_date_returns_422(self):
+        response = self.client.get(f"/entities/{self.entity_id}/balance", params={"as_of": "2099-01-01"})
+        self.assertEqual(response.status_code, 422)
 
     def test_balance_unknown_entity_returns_404(self):
         response = self.client.get(f"/entities/{uuid4()}/balance")

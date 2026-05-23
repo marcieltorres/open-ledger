@@ -7,6 +7,7 @@ from uuid import uuid4
 from src.exceptions.entity import EntityNotFoundError
 from src.model.account_balance_snapshot import AccountBalanceSnapshot
 from src.model.chart_of_accounts import AccountType, ChartOfAccounts
+from src.model.schemas.statement import EntityBalanceResponse
 from src.model.transaction import Transaction
 from src.model.transaction_entry import TransactionEntry
 from src.services.statement import StatementService, _asset_delta
@@ -73,33 +74,49 @@ class AssetDeltaTest(TestCase):
         self.assertEqual(_asset_delta("liability", "credit", Decimal("50")), Decimal("0"))
 
 
-class GetBalanceTest(TestCase):
+class GetEntityBalanceTest(TestCase):
     def setUp(self):
         self.service = _make_service()
+        self.entity_id = uuid4()
 
     def test_entity_not_found_raises(self):
         self.service._entity_repo.exists.return_value = False
         with self.assertRaises(EntityNotFoundError):
-            self.service.get_balance(uuid4())
+            self.service.get_entity_balance(uuid4(), None)
 
-    def test_returns_account_balance_list(self):
-        entity_id = uuid4()
-        acc = _make_account(balance="150.00")
-        self.service._entity_repo.exists.return_value = True
-        self.service._account_repo.get_by_entity.return_value = [acc]
-
-        result = self.service.get_balance(entity_id)
-
-        self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].account_id, acc.id)
-        self.assertEqual(result[0].code, acc.code)
-        self.assertEqual(result[0].current_balance, Decimal("150.00"))
-
-    def test_empty_accounts_returns_empty_list(self):
+    def test_returns_zero_with_no_accounts(self):
         self.service._entity_repo.exists.return_value = True
         self.service._account_repo.get_by_entity.return_value = []
-        result = self.service.get_balance(uuid4())
-        self.assertEqual(result, [])
+        result = self.service.get_entity_balance(self.entity_id, None)
+        self.assertIsInstance(result, EntityBalanceResponse)
+        self.assertEqual(result.balance, Decimal("0"))
+        self.assertEqual(result.as_of, date.today())
+        self.assertEqual(result.breakdown, [])
+
+    def test_sums_only_asset_accounts(self):
+        asset = _make_account(account_type=AccountType.asset, balance="150.00")
+        revenue = _make_account(account_type=AccountType.revenue, balance="300.00", code="3.1.001")
+        self.service._entity_repo.exists.return_value = True
+        self.service._account_repo.get_by_entity.return_value = [asset, revenue]
+
+        result = self.service.get_entity_balance(self.entity_id, None)
+
+        self.assertEqual(result.balance, Decimal("150.00"))
+        self.assertEqual(len(result.breakdown), 1)
+        self.assertEqual(result.breakdown[0].code, asset.code)
+
+    def test_historical_balance_with_as_of(self):
+        asset = _make_account(account_type=AccountType.asset, balance="0")
+        self.service._entity_repo.exists.return_value = True
+        self.service._account_repo.get_by_entity.return_value = [asset]
+        snapshot = AccountBalanceSnapshot(account_id=asset.id, snapshot_date=date(2025, 11, 30), balance=Decimal("400"))
+        self.service._snapshot_repo.get_latest_before.return_value = snapshot
+
+        result = self.service.get_entity_balance(self.entity_id, date(2025, 12, 1))
+
+        self.assertEqual(result.balance, Decimal("400"))
+        self.assertEqual(result.as_of, date(2025, 12, 1))
+        self.assertEqual(result.breakdown[0].balance, Decimal("400"))
 
 
 class OpeningBalanceTest(TestCase):
