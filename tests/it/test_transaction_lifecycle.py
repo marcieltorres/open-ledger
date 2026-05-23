@@ -22,9 +22,10 @@ def _make_entity(session):
     return entity
 
 
-def _open_period(session, period_date: date):
+def _close_period(session, period_date: date):
     period = AccountingPeriod(
-        period_date=period_date, status=PeriodStatus.open, opened_at=datetime.now(timezone.utc)
+        period_date=period_date, status=PeriodStatus.closed,
+        opened_at=datetime.now(timezone.utc), closed_at=datetime.now(timezone.utc),
     )
     session.add(period)
     session.flush()
@@ -74,7 +75,6 @@ class TransactionLifecycleFullFlowTest(TestCase):
         self.entity = _make_entity(self.db_session)
         self.entity_id = str(self.entity.id)
         _provision_accounts(self.db_session, self.entity.id)
-        _open_period(self.db_session, date.fromisoformat(_EFFECTIVE_DATE))
 
     def tearDown(self):
         app.dependency_overrides.clear()
@@ -202,6 +202,7 @@ class TransactionLifecycleErrorHandlingTest(TestCase):
         app.dependency_overrides.clear()
 
     def test_anticipation_closed_period_returns_422(self):
+        _close_period(self.db_session, date.fromisoformat(_EFFECTIVE_DATE))
         resp = self.client.post(
             f"/entities/{self.entity_id}/anticipations",
             json={
@@ -215,6 +216,7 @@ class TransactionLifecycleErrorHandlingTest(TestCase):
         self.assertEqual(resp.status_code, 422)
 
     def test_deposit_closed_period_returns_422(self):
+        _close_period(self.db_session, date.fromisoformat(_EFFECTIVE_DATE))
         resp = self.client.post(
             f"/entities/{self.entity_id}/deposits",
             json={"amount": "500.00", "currency": "BRL", "effective_date": _EFFECTIVE_DATE},
@@ -223,6 +225,7 @@ class TransactionLifecycleErrorHandlingTest(TestCase):
         self.assertEqual(resp.status_code, 422)
 
     def test_withdrawal_closed_period_returns_422(self):
+        _close_period(self.db_session, date.fromisoformat(_EFFECTIVE_DATE))
         resp = self.client.post(
             f"/entities/{self.entity_id}/withdrawals",
             json={"amount": "200.00", "currency": "BRL", "effective_date": _EFFECTIVE_DATE},
@@ -231,8 +234,6 @@ class TransactionLifecycleErrorHandlingTest(TestCase):
         self.assertEqual(resp.status_code, 422)
 
     def test_settlement_invalid_receivable_status_returns_422(self):
-        _open_period(self.db_session, date.fromisoformat(_EFFECTIVE_DATE))
-
         self.client.post(
             f"/entities/{self.entity_id}/transactions",
             json={
@@ -273,7 +274,6 @@ class DepositWithdrawalTest(TestCase):
         self.entity = _make_entity(self.db_session)
         self.entity_id = str(self.entity.id)
         _provision_accounts(self.db_session, self.entity.id)
-        _open_period(self.db_session, date.fromisoformat(_EFFECTIVE_DATE))
 
     def tearDown(self):
         app.dependency_overrides.clear()
@@ -350,7 +350,6 @@ class VoidTransactionITTest(TestCase):
         self.entity = _make_entity(self.db_session)
         self.entity_id = str(self.entity.id)
         _provision_accounts(self.db_session, self.entity.id)
-        _open_period(self.db_session, date.fromisoformat(_EFFECTIVE_DATE))
 
     def tearDown(self):
         app.dependency_overrides.clear()
@@ -408,10 +407,6 @@ class ReverseTransactionITTest(TestCase):
         self.entity = _make_entity(self.db_session)
         self.entity_id = str(self.entity.id)
         _provision_accounts(self.db_session, self.entity.id)
-        _open_period(self.db_session, date.fromisoformat(_EFFECTIVE_DATE))
-        today = date.today()
-        if today != date.fromisoformat(_EFFECTIVE_DATE):
-            _open_period(self.db_session, today)
 
     def tearDown(self):
         app.dependency_overrides.clear()

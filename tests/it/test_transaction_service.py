@@ -39,8 +39,11 @@ def _provision_accounts(session, entity_id):
     return accounts
 
 
-def _open_period(session, period_date: date):
-    period = AccountingPeriod(period_date=period_date, status=PeriodStatus.open, opened_at=datetime.now(timezone.utc))
+def _close_period(session, period_date: date):
+    period = AccountingPeriod(
+        period_date=period_date, status=PeriodStatus.closed,
+        opened_at=datetime.now(timezone.utc), closed_at=datetime.now(timezone.utc),
+    )
     session.add(period)
     session.flush()
     return period
@@ -59,7 +62,6 @@ class TransactionPostITTest(TestCase):
         self.entity_id = str(entity.id)
 
         _provision_accounts(self.db_session, entity.id)
-        _open_period(self.db_session, date.fromisoformat(_EFFECTIVE_DATE))
 
     def tearDown(self):
         app.dependency_overrides.clear()
@@ -114,6 +116,7 @@ class TransactionPostITTest(TestCase):
         self.assertEqual(resp.status_code, 422)
 
     def test_closed_period_returns_422(self):
+        _close_period(self.db_session, date(2020, 1, 1))
         entries = [
             {"account_code": "1.1.001", "entry_type": "debit",  "amount": "10.00", "currency": "BRL"},
             {"account_code": "3.1.001", "entry_type": "credit", "amount": "10.00", "currency": "BRL"},
@@ -148,7 +151,6 @@ class TransactionListGetITTest(TestCase):
         self.entity_id = str(entity.id)
 
         _provision_accounts(self.db_session, entity.id)
-        _open_period(self.db_session, date.fromisoformat(_EFFECTIVE_DATE))
 
     def tearDown(self):
         app.dependency_overrides.clear()

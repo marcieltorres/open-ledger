@@ -1,4 +1,3 @@
-from datetime import date, datetime, timezone
 from decimal import Decimal
 from unittest import TestCase
 from uuid import uuid4
@@ -7,7 +6,6 @@ from fastapi.testclient import TestClient
 
 from src.api import app
 from src.config.database import get_db
-from src.model.accounting_period import AccountingPeriod, PeriodStatus
 from src.model.chart_of_accounts import AccountType, ChartOfAccounts
 from src.model.entity import Entity
 
@@ -39,15 +37,6 @@ def _provision_accounts(session, entity_id):
     return accounts
 
 
-def _open_period(session, period_date: date):
-    period = AccountingPeriod(
-        period_date=period_date, status=PeriodStatus.open, opened_at=datetime.now(timezone.utc)
-    )
-    session.add(period)
-    session.flush()
-    return period
-
-
 class ReceivableCreateITTest(TestCase):
     db_session = None
 
@@ -61,7 +50,6 @@ class ReceivableCreateITTest(TestCase):
         self.entity_id = str(entity.id)
 
         _provision_accounts(self.db_session, entity.id)
-        _open_period(self.db_session, date.fromisoformat(_EFFECTIVE_DATE))
 
     def tearDown(self):
         app.dependency_overrides.clear()

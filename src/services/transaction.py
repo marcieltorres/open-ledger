@@ -85,7 +85,7 @@ class TransactionService:
         if existing:
             return existing
 
-        self._period_svc.validate_open(payload.effective_date)
+        self._period_svc.validate_not_blocked(payload.effective_date)
 
         accounts = []
         for entry in payload.entries:

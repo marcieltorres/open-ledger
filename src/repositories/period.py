@@ -16,3 +16,13 @@ class PeriodRepository(BaseRepository[AccountingPeriod]):
             .filter(AccountingPeriod.period_date == period_date, AccountingPeriod.status == PeriodStatus.open)
             .first()
         )
+
+    def get_closed_or_locked_for_date(self, period_date: date) -> AccountingPeriod | None:
+        return (
+            self.db.query(AccountingPeriod)
+            .filter(
+                AccountingPeriod.period_date == period_date,
+                AccountingPeriod.status.in_([PeriodStatus.closed, PeriodStatus.locked]),
+            )
+            .first()
+        )
