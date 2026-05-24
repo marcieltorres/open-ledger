@@ -4,6 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
+from src.model.enums import Currency
 from src.model.schemas.transactions import TransactionResponse
 
 
@@ -11,7 +12,7 @@ class TransferCreate(BaseModel):
     sender_entity_id: UUID
     receiver_entity_id: UUID
     amount: Decimal
-    currency: str = "BRL"
+    currency: Currency = Currency.BRL
     effective_date: date
     description: str | None = None
     custom_data: dict | None = None

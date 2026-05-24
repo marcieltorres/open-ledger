@@ -45,3 +45,8 @@ class ReceivableStatus(str, enum.Enum):
     pending = "pending"
     settled = "settled"
     cancelled = "cancelled"
+
+
+class Currency(str, enum.Enum):
+    BRL = "BRL"
+    USD = "USD"
