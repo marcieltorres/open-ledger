@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from src.exceptions.entity import EntityNotFoundError
 from src.model.chart_of_accounts import ChartOfAccounts
 from src.model.entity import Entity
+from src.model.enums import EntryType, TransactionStatus
 from src.model.schemas.statement import (
     BalanceBreakdownItem,
     EntityBalanceResponse,
@@ -27,7 +28,7 @@ def _asset_delta(account_type: str, entry_type: str, amount: Decimal) -> Decimal
     """Returns net asset position change: only asset accounts count, debit=+, credit=-."""
     if account_type != "asset":
         return Decimal(0)
-    return amount if entry_type == "debit" else -amount
+    return amount if entry_type == EntryType.debit else -amount
 
 
 class StatementService:
@@ -55,7 +56,7 @@ class StatementService:
             .filter(
                 TransactionEntry.account_id == account.id,
                 Transaction.effective_date < start_date,
-                Transaction.status == "committed",
+                Transaction.status == TransactionStatus.committed,
             )
             .all()
         )
@@ -103,7 +104,7 @@ class StatementService:
                 TransactionEntry.account_id.in_(account_map.keys()),
                 Transaction.effective_date >= start_date,
                 Transaction.effective_date <= end_date,
-                Transaction.status == "committed",
+                Transaction.status == TransactionStatus.committed,
             )
             .order_by(Transaction.effective_date, Transaction.id)
             .all()

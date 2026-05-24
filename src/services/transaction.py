@@ -19,6 +19,7 @@ from src.model.constants.account_codes import (
     ACC_RECEIVABLES_ANTICIPATED,
     WORLD_ACCOUNTS,
 )
+from src.model.enums import ClearingNetwork, EntryType, ReferenceType, TransactionStatus, TransactionType
 from src.model.schemas.anticipations import AnticipationCreate
 from src.model.schemas.deposits import DepositCreate
 from src.model.schemas.reversals import ReversalCreate
@@ -35,7 +36,7 @@ from src.services.receivable import ReceivableService
 _PRECISION = Decimal("0.01")
 
 
-def _world_account(clearing_network: str | None) -> str:
+def _world_account(clearing_network: ClearingNetwork | None) -> str:
     return WORLD_ACCOUNTS.get(clearing_network, "9.9.999")
 
 
@@ -53,8 +54,8 @@ class TransactionService:
         """Returns the delta to apply to current_balance based on account and entry type."""
         increases_on_debit = account_type in ("asset", "expense")
         if increases_on_debit:
-            return amount if entry_type == "debit" else -amount
-        return -amount if entry_type == "debit" else amount
+            return amount if entry_type == EntryType.debit else -amount
+        return -amount if entry_type == EntryType.debit else amount
 
     def _validate_double_entry(self, entries: list[TransactionEntryCreate]) -> None:
         """Raises DoubleEntryImbalanceError if Σdebits ≠ Σcredits per currency."""
@@ -105,7 +106,7 @@ class TransactionService:
         transaction = Transaction(
             entity_id=entity_id,
             idempotency_key=idempotency_key,
-            status="committed",
+            status=TransactionStatus.committed,
             **payload.model_dump(exclude={"entries", "receivable"}),
         )
         self._session.add(transaction)
@@ -118,7 +119,7 @@ class TransactionService:
                 **entry.model_dump(exclude={"account_code"}),
             ))
 
-        if transaction.status != "pending":
+        if transaction.status != TransactionStatus.pending:
             self._apply_balance_updates(payload.entries, accounts)
 
         if payload.receivable is not None:
@@ -139,24 +140,24 @@ class TransactionService:
     def anticipate(self, entity_id: UUID, payload: AnticipationCreate, idempotency_key: str) -> Transaction:
         entries = [
             TransactionEntryCreate(
-                account_code=ACC_RECEIVABLES_ANTICIPATED, entry_type="debit", amount=payload.receivable_amount
+                account_code=ACC_RECEIVABLES_ANTICIPATED, entry_type=EntryType.debit, amount=payload.receivable_amount
             ),
             TransactionEntryCreate(
-                account_code=ACC_RECEIVABLES, entry_type="credit", amount=payload.receivable_amount
+                account_code=ACC_RECEIVABLES, entry_type=EntryType.credit, amount=payload.receivable_amount
             ),
             TransactionEntryCreate(
-                account_code=ACC_ANTICIPATION_FEE, entry_type="debit", amount=payload.anticipation_fee
+                account_code=ACC_ANTICIPATION_FEE, entry_type=EntryType.debit, amount=payload.anticipation_fee
             ),
             TransactionEntryCreate(
-                account_code=ACC_RECEIVABLES_ANTICIPATED, entry_type="credit", amount=payload.anticipation_fee
+                account_code=ACC_RECEIVABLES_ANTICIPATED, entry_type=EntryType.credit, amount=payload.anticipation_fee
             ),
         ]
         txn_create = TransactionCreate(
-            transaction_type="anticipation",
+            transaction_type=TransactionType.anticipation,
             effective_date=payload.effective_date,
             entries=entries,
             reference_id=str(payload.receivable_id),
-            reference_type="receivable",
+            reference_type=ReferenceType.receivable,
             custom_data=payload.custom_data,
         )
         return self.post(entity_id, txn_create, idempotency_key)
@@ -164,17 +165,17 @@ class TransactionService:
     def settle(self, entity_id: UUID, payload: SettlementCreate, idempotency_key: str) -> Transaction:
         world_code = _world_account(payload.clearing_network)
         entries = [
-            TransactionEntryCreate(account_code=world_code, entry_type="debit", amount=payload.amount),
+            TransactionEntryCreate(account_code=world_code, entry_type=EntryType.debit, amount=payload.amount),
             TransactionEntryCreate(
-                account_code=ACC_RECEIVABLES_ANTICIPATED, entry_type="credit", amount=payload.amount
+                account_code=ACC_RECEIVABLES_ANTICIPATED, entry_type=EntryType.credit, amount=payload.amount
             ),
         ]
         txn_create = TransactionCreate(
-            transaction_type="settlement",
+            transaction_type=TransactionType.settlement,
             effective_date=payload.settlement_date,
             entries=entries,
             reference_id=str(payload.receivable_id),
-            reference_type="receivable",
+            reference_type=ReferenceType.receivable,
             custom_data=payload.custom_data,
         )
         txn = self.post(entity_id, txn_create, idempotency_key)
@@ -185,14 +186,14 @@ class TransactionService:
         world_code = _world_account(payload.clearing_network)
         entries = [
             TransactionEntryCreate(
-                account_code=ACC_RECEIVABLES, entry_type="debit", amount=payload.amount, currency=payload.currency
+                account_code=ACC_RECEIVABLES, entry_type=EntryType.debit, amount=payload.amount, currency=payload.currency
             ),
             TransactionEntryCreate(
-                account_code=world_code, entry_type="credit", amount=payload.amount, currency=payload.currency
+                account_code=world_code, entry_type=EntryType.credit, amount=payload.amount, currency=payload.currency
             ),
         ]
         txn_create = TransactionCreate(
-            transaction_type="deposit",
+            transaction_type=TransactionType.deposit,
             effective_date=payload.effective_date,
             entries=entries,
             custom_data=payload.custom_data,
@@ -203,14 +204,14 @@ class TransactionService:
         world_code = _world_account(payload.clearing_network)
         entries = [
             TransactionEntryCreate(
-                account_code=world_code, entry_type="debit", amount=payload.amount, currency=payload.currency
+                account_code=world_code, entry_type=EntryType.debit, amount=payload.amount, currency=payload.currency
             ),
             TransactionEntryCreate(
-                account_code=ACC_RECEIVABLES, entry_type="credit", amount=payload.amount, currency=payload.currency
+                account_code=ACC_RECEIVABLES, entry_type=EntryType.credit, amount=payload.amount, currency=payload.currency
             ),
         ]
         txn_create = TransactionCreate(
-            transaction_type="withdrawal",
+            transaction_type=TransactionType.withdrawal,
             effective_date=payload.effective_date,
             entries=entries,
             custom_data=payload.custom_data,
@@ -221,11 +222,11 @@ class TransactionService:
         transaction = self._repo.get_with_entries(entity_id, txn_id)
         if transaction is None:
             raise TransactionNotFoundError(f"Transaction '{txn_id}' not found for entity '{entity_id}'")
-        if transaction.status != "pending":
+        if transaction.status != TransactionStatus.pending:
             raise InvalidStatusTransitionError(
                 f"Cannot void transaction with status '{transaction.status}'; only 'pending' transactions can be voided"
             )
-        transaction.status = "voided"
+        transaction.status = TransactionStatus.voided
         return transaction
 
     def reverse(self, entity_id: UUID, txn_id: UUID, payload: ReversalCreate, idempotency_key: str) -> Transaction:
@@ -236,18 +237,18 @@ class TransactionService:
         mirrored = [
             TransactionEntryCreate(
                 account_code=entry.account.code,
-                entry_type="credit" if entry.entry_type == "debit" else "debit",
+                entry_type=EntryType.credit if entry.entry_type == EntryType.debit else EntryType.debit,
                 amount=entry.amount,
                 currency=entry.currency,
             )
             for entry in original.entries
         ]
         txn_create = TransactionCreate(
-            transaction_type="reversal",
+            transaction_type=TransactionType.reversal,
             effective_date=date.today(),
             entries=mirrored,
             reference_id=str(txn_id),
-            reference_type="transaction",
+            reference_type=ReferenceType.transaction,
             description=payload.reason,
             custom_data=payload.custom_data,
         )

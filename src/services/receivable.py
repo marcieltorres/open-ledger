@@ -5,6 +5,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from src.exceptions.receivable import InvalidReceivableStatusTransitionError, ReceivableNotFoundError
+from src.model.enums import ReceivableStatus
 from src.model.receivable import Receivable
 from src.model.schemas.receivables import ReceivableCreate
 from src.repositories.receivable import ReceivableRepository
@@ -26,7 +27,7 @@ class ReceivableService:
             gross_amount=self._round(payload.gross_amount),
             net_amount=self._round(payload.net_amount),
             fee_amount=self._round(payload.fee_amount),
-            status="pending",
+            status=ReceivableStatus.pending,
             expected_settlement_date=payload.expected_settlement_date,
             custom_data=payload.custom_data,
         )
@@ -34,27 +35,27 @@ class ReceivableService:
 
     def settle(self, entity_id: UUID, receivable_id: UUID, actual_settlement_date: date) -> Receivable:
         receivable = self._get_for_entity(entity_id, receivable_id)
-        if receivable.status != "pending":
+        if receivable.status != ReceivableStatus.pending:
             raise InvalidReceivableStatusTransitionError(
                 f"Cannot settle receivable with status '{receivable.status}'"
             )
-        receivable.status = "settled"
+        receivable.status = ReceivableStatus.settled
         receivable.actual_settlement_date = actual_settlement_date
         return receivable
 
     def cancel(self, entity_id: UUID, receivable_id: UUID) -> Receivable:
         receivable = self._get_for_entity(entity_id, receivable_id)
-        if receivable.status != "pending":
+        if receivable.status != ReceivableStatus.pending:
             raise InvalidReceivableStatusTransitionError(
                 f"Cannot cancel receivable with status '{receivable.status}'"
             )
-        receivable.status = "cancelled"
+        receivable.status = ReceivableStatus.cancelled
         return receivable
 
     def get_by_id(self, entity_id: UUID, receivable_id: UUID) -> Receivable:
         return self._get_for_entity(entity_id, receivable_id)
 
-    def list_by_entity(self, entity_id: UUID, status: str | None = None) -> list[Receivable]:
+    def list_by_entity(self, entity_id: UUID, status: ReceivableStatus | None = None) -> list[Receivable]:
         return self._repo.get_by_entity(entity_id, status=status)
 
     def _get_for_entity(self, entity_id: UUID, receivable_id: UUID) -> Receivable:

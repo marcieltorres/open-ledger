@@ -51,6 +51,10 @@ class AccountProvisionITTest(TestCase):
         response = self.client.post(f"/entities/{self.entity_id}/accounts", json={"template": "invalid"})
         self.assertEqual(response.status_code, 422)
 
+    def test_provision_no_template_no_accounts_returns_422(self):
+        response = self.client.post(f"/entities/{self.entity_id}/accounts", json={})
+        self.assertEqual(response.status_code, 422)
+
 
 class AccountListITTest(TestCase):
     db_session = None

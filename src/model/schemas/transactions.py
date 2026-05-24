@@ -4,12 +4,13 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
+from src.model.enums import EntryType, ReferenceType, TransactionStatus, TransactionType
 from src.model.schemas.receivables import ReceivableCreate, ReceivableResponse
 
 
 class TransactionEntryCreate(BaseModel):
     account_code: str
-    entry_type: str
+    entry_type: EntryType
     amount: Decimal
     currency: str = "BRL"
     custom_data: dict | None = None
@@ -28,7 +29,7 @@ class TransactionEntryResponse(BaseModel):
 
     id: UUID
     transaction_id: UUID
-    entry_type: str
+    entry_type: EntryType
     amount: Decimal
     currency: str
     custom_data: dict | None
@@ -38,11 +39,11 @@ class TransactionEntryResponse(BaseModel):
 
 
 class TransactionCreate(BaseModel):
-    transaction_type: str
+    transaction_type: TransactionType
     effective_date: date
     entries: list[TransactionEntryCreate]
     reference_id: str | None = None
-    reference_type: str | None = None
+    reference_type: ReferenceType | None = None
     description: str | None = None
     custom_data: dict | None = None
     receivable: ReceivableCreate | None = None
@@ -54,11 +55,11 @@ class TransactionResponse(BaseModel):
     id: UUID
     entity_id: UUID
     idempotency_key: str
-    status: str
-    transaction_type: str
+    status: TransactionStatus
+    transaction_type: TransactionType
     effective_date: date
     reference_id: str | None
-    reference_type: str | None
+    reference_type: ReferenceType | None
     description: str | None
     custom_data: dict | None
     receivable: ReceivableResponse | None = None

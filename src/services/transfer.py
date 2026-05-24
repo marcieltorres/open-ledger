@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from src.exceptions.transfer import TransferAccountNotFoundError, TransferEntityNotFoundError
 from src.model.constants.account_codes import ACC_RECEIVABLES, ACC_TRANSFER
 from src.model.entity import Entity
+from src.model.enums import EntryType, TransactionType
 from src.model.schemas.transactions import TransactionCreate, TransactionEntryCreate
 from src.model.schemas.transfers import TransferCreate
 from src.model.transaction import Transaction
@@ -52,7 +53,7 @@ class TransferService:
         sender_txn = self._txn_svc.post(
             payload.sender_entity_id,
             TransactionCreate(
-                transaction_type="transfer",
+                transaction_type=TransactionType.transfer,
                 effective_date=payload.effective_date,
                 description=payload.description,
                 custom_data={
@@ -62,13 +63,13 @@ class TransferService:
                 entries=[
                     TransactionEntryCreate(
                         account_code=ACC_TRANSFER,
-                        entry_type="debit",
+                        entry_type=EntryType.debit,
                         amount=payload.amount,
                         currency=payload.currency,
                     ),
                     TransactionEntryCreate(
                         account_code=ACC_RECEIVABLES,
-                        entry_type="credit",
+                        entry_type=EntryType.credit,
                         amount=payload.amount,
                         currency=payload.currency,
                     ),
@@ -80,7 +81,7 @@ class TransferService:
         receiver_txn = self._txn_svc.post(
             payload.receiver_entity_id,
             TransactionCreate(
-                transaction_type="transfer",
+                transaction_type=TransactionType.transfer,
                 effective_date=payload.effective_date,
                 description=payload.description,
                 custom_data={
@@ -91,13 +92,13 @@ class TransferService:
                 entries=[
                     TransactionEntryCreate(
                         account_code=ACC_RECEIVABLES,
-                        entry_type="debit",
+                        entry_type=EntryType.debit,
                         amount=payload.amount,
                         currency=payload.currency,
                     ),
                     TransactionEntryCreate(
                         account_code=ACC_TRANSFER,
-                        entry_type="credit",
+                        entry_type=EntryType.credit,
                         amount=payload.amount,
                         currency=payload.currency,
                     ),

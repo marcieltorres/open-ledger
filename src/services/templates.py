@@ -1,6 +1,7 @@
 from src.exceptions.account import InvalidTemplateError
 from src.model.chart_of_accounts import AccountType
 from src.model.constants.account_codes import ACC_ANTICIPATION_FEE, ACC_RECEIVABLES, ACC_RECEIVABLES_ANTICIPATED
+from src.model.enums import AccountTemplate
 from src.model.schemas.accounts import AccountCreate
 
 _COMMON = [
@@ -8,8 +9,8 @@ _COMMON = [
     AccountCreate(code="9.9.999", name="World", account_type=AccountType.equity, currency="BRL"),
 ]
 
-_TEMPLATES: dict[str, list[AccountCreate]] = {
-    "merchant": [
+_TEMPLATES: dict[AccountTemplate, list[AccountCreate]] = {
+    AccountTemplate.merchant: [
         AccountCreate(code=ACC_RECEIVABLES, name="Receivables", account_type=AccountType.asset, currency="BRL"),
         AccountCreate(code=ACC_RECEIVABLES_ANTICIPATED, name="Receivables Anticipated",
                       account_type=AccountType.asset, currency="BRL"),
@@ -26,30 +27,30 @@ _TEMPLATES: dict[str, list[AccountCreate]] = {
         AccountCreate(code="4.2.002", name="Expense-PIS/COFINS", account_type=AccountType.expense, currency="BRL"),
         AccountCreate(code="4.2.003", name="Expense-CSLL/IRPJ", account_type=AccountType.expense, currency="BRL"),
     ],
-    "customer": [
+    AccountTemplate.customer: [
         AccountCreate(
             code="2.1.001", name="Payable to Counterparty", account_type=AccountType.liability, currency="BRL"
         ),
         AccountCreate(code="4.1.001", name="Expense-Purchases", account_type=AccountType.expense, currency="BRL"),
     ],
-    "operator": [
+    AccountTemplate.operator: [
         AccountCreate(code=ACC_RECEIVABLES, name="Receivables", account_type=AccountType.asset, currency="BRL"),
         AccountCreate(code="3.1.001", name="Revenue-Platform Fee", account_type=AccountType.revenue, currency="BRL"),
         AccountCreate(code="4.1.001", name="Expense-White-label Fee", account_type=AccountType.expense, currency="BRL"),
     ],
-    "platform": [
+    AccountTemplate.platform: [
         AccountCreate(code=ACC_RECEIVABLES, name="Receivables", account_type=AccountType.asset, currency="BRL"),
         AccountCreate(code="3.1.001", name="Revenue-Platform Fee", account_type=AccountType.revenue, currency="BRL"),
         AccountCreate(code="3.1.002", name="Revenue-White-label Fee", account_type=AccountType.revenue, currency="BRL"),
     ],
-    "baas_customer": [
+    AccountTemplate.baas_customer: [
         AccountCreate(code="1.1.001", name="Checking Account", account_type=AccountType.asset, currency="BRL"),
         AccountCreate(code="1.1.002", name="Savings Account", account_type=AccountType.asset, currency="BRL"),
     ],
 }
 
 
-def get_template(name: str) -> list[AccountCreate]:
+def get_template(name: AccountTemplate) -> list[AccountCreate]:
     template = _TEMPLATES.get(name)
     if template is None:
         raise InvalidTemplateError(f"Template '{name}' not found")
