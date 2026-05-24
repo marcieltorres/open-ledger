@@ -18,6 +18,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Convert accounting_periods.status from PostgreSQL ENUM to VARCHAR(20) with UPPERCASE values."""
+    op.drop_index('idx_periods_status', table_name='accounting_periods')
     op.execute(
         """
         ALTER TABLE accounting_periods
@@ -25,7 +26,6 @@ def upgrade() -> None:
         """
     )
     op.execute('DROP TYPE IF EXISTS periodstatus')
-    op.drop_index('idx_periods_status', table_name='accounting_periods')
     op.create_index('idx_periods_status', 'accounting_periods', ['status'])
 
 
