@@ -11,7 +11,8 @@ from src.exceptions.period import (
     PeriodClosedError,
     PeriodNotFoundError,
 )
-from src.model.accounting_period import AccountingPeriod, PeriodStatus
+from src.model.accounting_period import AccountingPeriod
+from src.model.enums import PeriodStatus
 from src.model.schemas.periods import PeriodCloseRequest, PeriodCreate, PeriodLockRequest
 from src.services.period import PeriodService
 
@@ -19,7 +20,7 @@ from src.services.period import PeriodService
 def _make_period(**kwargs) -> AccountingPeriod:
     period = AccountingPeriod(
         period_date=kwargs.get("period_date", date(2025, 12, 1)),
-        status=kwargs.get("status", PeriodStatus.open),
+        status=kwargs.get("status", PeriodStatus.OPEN),
         opened_at=kwargs.get("opened_at", datetime.now(tz=timezone.utc)),
         closed_at=kwargs.get("closed_at", None),
         locked_at=kwargs.get("locked_at", None),
@@ -101,12 +102,12 @@ class PeriodServiceValidateNotBlockedTest(TestCase):
         self.service.validate_not_blocked(date(2025, 12, 1))
 
     def test_raises_when_period_is_closed(self):
-        self.service._repo.get_closed_or_locked_for_date.return_value = _make_period(status=PeriodStatus.closed)
+        self.service._repo.get_closed_or_locked_for_date.return_value = _make_period(status=PeriodStatus.CLOSED)
         with self.assertRaises(PeriodClosedError):
             self.service.validate_not_blocked(date(2025, 12, 1))
 
     def test_raises_when_period_is_locked(self):
-        self.service._repo.get_closed_or_locked_for_date.return_value = _make_period(status=PeriodStatus.locked)
+        self.service._repo.get_closed_or_locked_for_date.return_value = _make_period(status=PeriodStatus.LOCKED)
         with self.assertRaises(PeriodClosedError):
             self.service.validate_not_blocked(date(2025, 12, 1))
 
@@ -118,29 +119,29 @@ class PeriodServiceCloseTest(TestCase):
         self.service._repo = MagicMock()
 
     def test_close_open_period(self):
-        period = _make_period(status=PeriodStatus.open)
+        period = _make_period(status=PeriodStatus.OPEN)
         self.service._repo.get_by_id.return_value = period
         self.service._repo.save.return_value = period
         result = self.service.close(period.id, PeriodCloseRequest(closed_by="admin"))
-        self.assertEqual(result.status, PeriodStatus.closed)
+        self.assertEqual(result.status, PeriodStatus.CLOSED)
         self.assertIsNotNone(result.closed_at)
         self.assertEqual(result.closed_by, "admin")
 
     def test_close_closed_period_raises(self):
-        period = _make_period(status=PeriodStatus.closed)
+        period = _make_period(status=PeriodStatus.CLOSED)
         self.service._repo.get_by_id.return_value = period
         with self.assertRaises(InvalidPeriodTransitionError):
             self.service.close(period.id, PeriodCloseRequest(closed_by="admin"))
 
     def test_close_with_notes_updates_notes(self):
-        period = _make_period(status=PeriodStatus.open)
+        period = _make_period(status=PeriodStatus.OPEN)
         self.service._repo.get_by_id.return_value = period
         self.service._repo.save.return_value = period
         self.service.close(period.id, PeriodCloseRequest(closed_by="admin", notes="end of month"))
         self.assertEqual(period.notes, "end of month")
 
     def test_close_locked_period_raises(self):
-        period = _make_period(status=PeriodStatus.locked)
+        period = _make_period(status=PeriodStatus.LOCKED)
         self.service._repo.get_by_id.return_value = period
         with self.assertRaises(InvalidPeriodTransitionError):
             self.service.close(period.id, PeriodCloseRequest(closed_by="admin"))
@@ -153,22 +154,22 @@ class PeriodServiceReopenTest(TestCase):
         self.service._repo = MagicMock()
 
     def test_reopen_closed_period(self):
-        period = _make_period(status=PeriodStatus.closed)
+        period = _make_period(status=PeriodStatus.CLOSED)
         self.service._repo.get_by_id.return_value = period
         self.service._repo.save.return_value = period
         result = self.service.reopen(period.id)
-        self.assertEqual(result.status, PeriodStatus.open)
+        self.assertEqual(result.status, PeriodStatus.OPEN)
         self.assertIsNone(result.closed_at)
         self.assertIsNone(result.closed_by)
 
     def test_reopen_locked_period_raises(self):
-        period = _make_period(status=PeriodStatus.locked)
+        period = _make_period(status=PeriodStatus.LOCKED)
         self.service._repo.get_by_id.return_value = period
         with self.assertRaises(InvalidPeriodTransitionError):
             self.service.reopen(period.id)
 
     def test_reopen_open_period_raises(self):
-        period = _make_period(status=PeriodStatus.open)
+        period = _make_period(status=PeriodStatus.OPEN)
         self.service._repo.get_by_id.return_value = period
         with self.assertRaises(InvalidPeriodTransitionError):
             self.service.reopen(period.id)
@@ -181,22 +182,22 @@ class PeriodServiceLockTest(TestCase):
         self.service._repo = MagicMock()
 
     def test_lock_closed_period(self):
-        period = _make_period(status=PeriodStatus.closed)
+        period = _make_period(status=PeriodStatus.CLOSED)
         self.service._repo.get_by_id.return_value = period
         self.service._repo.save.return_value = period
         result = self.service.lock(period.id, PeriodLockRequest(locked_by="admin"))
-        self.assertEqual(result.status, PeriodStatus.locked)
+        self.assertEqual(result.status, PeriodStatus.LOCKED)
         self.assertIsNotNone(result.locked_at)
         self.assertEqual(result.locked_by, "admin")
 
     def test_lock_locked_period_raises(self):
-        period = _make_period(status=PeriodStatus.locked)
+        period = _make_period(status=PeriodStatus.LOCKED)
         self.service._repo.get_by_id.return_value = period
         with self.assertRaises(InvalidPeriodTransitionError):
             self.service.lock(period.id, PeriodLockRequest(locked_by="admin"))
 
     def test_lock_open_period_raises(self):
-        period = _make_period(status=PeriodStatus.open)
+        period = _make_period(status=PeriodStatus.OPEN)
         self.service._repo.get_by_id.return_value = period
         with self.assertRaises(InvalidPeriodTransitionError):
             self.service.lock(period.id, PeriodLockRequest(locked_by="admin"))

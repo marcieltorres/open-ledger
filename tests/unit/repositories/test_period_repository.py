@@ -3,14 +3,15 @@ from unittest import TestCase
 from unittest.mock import MagicMock
 from uuid import uuid4
 
-from src.model.accounting_period import AccountingPeriod, PeriodStatus
+from src.model.accounting_period import AccountingPeriod
+from src.model.enums import PeriodStatus
 from src.repositories.period import PeriodRepository
 
 
 def _make_period(**kwargs) -> AccountingPeriod:
     period = AccountingPeriod(
         period_date=kwargs.get("period_date", date(2025, 12, 1)),
-        status=kwargs.get("status", PeriodStatus.open),
+        status=kwargs.get("status", PeriodStatus.OPEN),
         opened_at=kwargs.get("opened_at", datetime.now(tz=timezone.utc)),
     )
     period.id = kwargs.get("id", uuid4())
@@ -40,13 +41,13 @@ class PeriodRepositoryGetClosedOrLockedForDateTest(TestCase):
         self.repo = PeriodRepository(self.session)
 
     def test_returns_closed_period_for_date(self):
-        period = _make_period(status=PeriodStatus.closed)
+        period = _make_period(status=PeriodStatus.CLOSED)
         self.session.query.return_value.filter.return_value.first.return_value = period
         result = self.repo.get_closed_or_locked_for_date(date(2025, 12, 1))
         self.assertEqual(result, period)
 
     def test_returns_locked_period_for_date(self):
-        period = _make_period(status=PeriodStatus.locked)
+        period = _make_period(status=PeriodStatus.LOCKED)
         self.session.query.return_value.filter.return_value.first.return_value = period
         result = self.repo.get_closed_or_locked_for_date(date(2025, 12, 1))
         self.assertEqual(result, period)

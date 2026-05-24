@@ -10,7 +10,8 @@ from src.exceptions.period import (
     PeriodClosedError,
     PeriodNotFoundError,
 )
-from src.model.accounting_period import AccountingPeriod, PeriodStatus
+from src.model.accounting_period import AccountingPeriod
+from src.model.enums import PeriodStatus
 from src.model.schemas.periods import PeriodCloseRequest, PeriodCreate, PeriodLockRequest
 from src.repositories.period import PeriodRepository
 
@@ -23,7 +24,7 @@ class PeriodService:
     def create(self, payload: PeriodCreate) -> AccountingPeriod:
         period = AccountingPeriod(
             period_date=payload.period_date,
-            status=PeriodStatus.open,
+            status=PeriodStatus.OPEN,
             opened_at=datetime.now(tz=timezone.utc),
             notes=payload.notes,
         )
@@ -54,9 +55,9 @@ class PeriodService:
 
     def close(self, period_id: UUID, payload: PeriodCloseRequest) -> AccountingPeriod:
         period = self.get_by_id(period_id)
-        if period.status != PeriodStatus.open:
+        if period.status != PeriodStatus.OPEN:
             raise InvalidPeriodTransitionError(f"Cannot close period with status '{period.status}'")
-        period.status = PeriodStatus.closed
+        period.status = PeriodStatus.CLOSED
         period.closed_at = datetime.now(tz=timezone.utc)
         period.closed_by = payload.closed_by
         if payload.notes is not None:
@@ -65,18 +66,18 @@ class PeriodService:
 
     def reopen(self, period_id: UUID) -> AccountingPeriod:
         period = self.get_by_id(period_id)
-        if period.status != PeriodStatus.closed:
+        if period.status != PeriodStatus.CLOSED:
             raise InvalidPeriodTransitionError(f"Cannot reopen period with status '{period.status}'")
-        period.status = PeriodStatus.open
+        period.status = PeriodStatus.OPEN
         period.closed_at = None
         period.closed_by = None
         return self._repo.save(period)
 
     def lock(self, period_id: UUID, payload: PeriodLockRequest) -> AccountingPeriod:
         period = self.get_by_id(period_id)
-        if period.status != PeriodStatus.closed:
+        if period.status != PeriodStatus.CLOSED:
             raise InvalidPeriodTransitionError(f"Cannot lock period with status '{period.status}'")
-        period.status = PeriodStatus.locked
+        period.status = PeriodStatus.LOCKED
         period.locked_at = datetime.now(tz=timezone.utc)
         period.locked_by = payload.locked_by
         return self._repo.save(period)

@@ -10,3 +10,9 @@ class ClearingNetwork(str, enum.Enum):
 class Currency(str, enum.Enum):
     BRL = "BRL"
     USD = "USD"
+
+
+class PeriodStatus(str, enum.Enum):
+    OPEN = "OPEN"
+    CLOSED = "CLOSED"
+    LOCKED = "LOCKED"

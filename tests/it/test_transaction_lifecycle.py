@@ -7,9 +7,10 @@ from fastapi.testclient import TestClient
 
 from src.api import app
 from src.config.database import get_db
-from src.model.accounting_period import AccountingPeriod, PeriodStatus
+from src.model.accounting_period import AccountingPeriod
 from src.model.chart_of_accounts import AccountType, ChartOfAccounts
 from src.model.entity import Entity
+from src.model.enums import PeriodStatus
 from src.model.transaction import Transaction
 
 _EFFECTIVE_DATE = "2026-04-21"
@@ -24,7 +25,7 @@ def _make_entity(session):
 
 def _close_period(session, period_date: date):
     period = AccountingPeriod(
-        period_date=period_date, status=PeriodStatus.closed,
+        period_date=period_date, status=PeriodStatus.CLOSED,
         opened_at=datetime.now(timezone.utc), closed_at=datetime.now(timezone.utc),
     )
     session.add(period)
