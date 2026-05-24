@@ -16,3 +16,9 @@ class PeriodStatus(str, enum.Enum):
     OPEN = "OPEN"
     CLOSED = "CLOSED"
     LOCKED = "LOCKED"
+
+
+class ReceivableStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    SETTLED = "SETTLED"
+    CANCELLED = "CANCELLED"

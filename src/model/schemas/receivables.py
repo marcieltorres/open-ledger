@@ -4,6 +4,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
+from src.model.enums import ReceivableStatus
+
 
 class ReceivableCreate(BaseModel):
     gross_amount: Decimal
@@ -22,7 +24,7 @@ class ReceivableResponse(BaseModel):
     gross_amount: Decimal
     net_amount: Decimal
     fee_amount: Decimal
-    status: str
+    status: ReceivableStatus
     expected_settlement_date: date | None
     actual_settlement_date: date | None
     custom_data: dict | None
