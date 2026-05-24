@@ -82,13 +82,13 @@ class ReceivableCreateITTest(TestCase):
         items = recv_list.json()
         self.assertEqual(len(items), 1)
         recv_id = items[0]["id"]
-        self.assertEqual(items[0]["status"], "pending")
+        self.assertEqual(items[0]["status"], "PENDING")
         self.assertEqual(items[0]["transaction_id"], txn_id)
 
         recv_detail = self.client.get(f"/entities/{self.entity_id}/receivables/{recv_id}")
         self.assertEqual(recv_detail.status_code, 200)
         data = recv_detail.json()
-        self.assertEqual(data["status"], "pending")
+        self.assertEqual(data["status"], "PENDING")
         self.assertEqual(Decimal(data["gross_amount"]), Decimal("100.00"))
         self.assertEqual(Decimal(data["net_amount"]), Decimal("97.70"))
         self.assertEqual(Decimal(data["fee_amount"]), Decimal("2.30"))
@@ -130,11 +130,11 @@ class ReceivableCreateITTest(TestCase):
         self._post_transaction(receivable_payload=recv_payload)
         self._post_transaction(receivable_payload=recv_payload)
 
-        pending_list = self.client.get(f"/entities/{self.entity_id}/receivables?status=pending")
+        pending_list = self.client.get(f"/entities/{self.entity_id}/receivables?status=PENDING")
         self.assertEqual(pending_list.status_code, 200)
         self.assertEqual(len(pending_list.json()), 2)
 
-        settled_list = self.client.get(f"/entities/{self.entity_id}/receivables?status=settled")
+        settled_list = self.client.get(f"/entities/{self.entity_id}/receivables?status=SETTLED")
         self.assertEqual(settled_list.status_code, 200)
         self.assertEqual(settled_list.json(), [])
 

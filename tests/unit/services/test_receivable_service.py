@@ -16,7 +16,7 @@ def _make_service() -> ReceivableService:
     return service
 
 
-def _make_receivable(status: str = "pending") -> Receivable:
+def _make_receivable(status: str = "PENDING") -> Receivable:
     r = Receivable(
         entity_id=uuid4(),
         transaction_id=uuid4(),
@@ -62,7 +62,7 @@ class CreateTest(TestCase):
             gross_amount=Decimal("100.00"),
             net_amount=Decimal("97.70"),
             fee_amount=Decimal("2.30"),
-            status="pending",
+            status="PENDING",
         )
         self.service._repo.save.return_value = saved
 
@@ -72,7 +72,7 @@ class CreateTest(TestCase):
         self.assertEqual(call_args.gross_amount, Decimal("100.00"))
         self.assertEqual(call_args.net_amount, Decimal("97.70"))
         self.assertEqual(call_args.fee_amount, Decimal("2.30"))
-        self.assertEqual(call_args.status, "pending")
+        self.assertEqual(call_args.status, "PENDING")
         self.assertEqual(result, saved)
 
     def test_create_with_exact_amounts_stores_unchanged(self):
@@ -127,24 +127,24 @@ class SettleTest(TestCase):
         self.service = _make_service()
 
     def test_settle_pending_sets_status_and_date(self):
-        receivable = _make_receivable("pending")
+        receivable = _make_receivable("PENDING")
         self.service._repo.get_by_entity_and_id.return_value = receivable
         settlement_date = date(2026, 5, 1)
 
         result = self.service.settle(receivable.entity_id, receivable.id, settlement_date)
 
-        self.assertEqual(result.status, "settled")
+        self.assertEqual(result.status, "SETTLED")
         self.assertEqual(result.actual_settlement_date, settlement_date)
 
     def test_settle_on_settled_raises(self):
-        receivable = _make_receivable("settled")
+        receivable = _make_receivable("SETTLED")
         self.service._repo.get_by_entity_and_id.return_value = receivable
 
         with self.assertRaises(InvalidReceivableStatusTransitionError):
             self.service.settle(receivable.entity_id, receivable.id, date(2026, 5, 1))
 
     def test_settle_on_cancelled_raises(self):
-        receivable = _make_receivable("cancelled")
+        receivable = _make_receivable("CANCELLED")
         self.service._repo.get_by_entity_and_id.return_value = receivable
 
         with self.assertRaises(InvalidReceivableStatusTransitionError):
@@ -156,15 +156,15 @@ class CancelTest(TestCase):
         self.service = _make_service()
 
     def test_cancel_pending_sets_status(self):
-        receivable = _make_receivable("pending")
+        receivable = _make_receivable("PENDING")
         self.service._repo.get_by_entity_and_id.return_value = receivable
 
         result = self.service.cancel(receivable.entity_id, receivable.id)
 
-        self.assertEqual(result.status, "cancelled")
+        self.assertEqual(result.status, "CANCELLED")
 
     def test_cancel_on_settled_raises(self):
-        receivable = _make_receivable("settled")
+        receivable = _make_receivable("SETTLED")
         self.service._repo.get_by_entity_and_id.return_value = receivable
 
         with self.assertRaises(InvalidReceivableStatusTransitionError):
@@ -201,9 +201,9 @@ class ListByEntityTest(TestCase):
         expected = [_make_receivable(), _make_receivable()]
         self.service._repo.get_by_entity.return_value = expected
 
-        result = self.service.list_by_entity(entity_id, status="pending")
+        result = self.service.list_by_entity(entity_id, status="PENDING")
 
-        self.service._repo.get_by_entity.assert_called_once_with(entity_id, status="pending")
+        self.service._repo.get_by_entity.assert_called_once_with(entity_id, status="PENDING")
         self.assertEqual(result, expected)
 
     def test_list_without_status_delegates_to_repo(self):

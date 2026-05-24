@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import enum
 from datetime import date
 from decimal import Decimal
 from uuid import UUID
@@ -11,12 +10,7 @@ from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.model.base_model import BaseModel
-
-
-class ReceivableStatus(str, enum.Enum):
-    pending = "pending"
-    settled = "settled"
-    cancelled = "cancelled"
+from src.model.enums import ReceivableStatus
 
 
 class Receivable(BaseModel):
@@ -27,7 +21,7 @@ class Receivable(BaseModel):
     gross_amount: Mapped[Decimal] = mapped_column(Numeric(20, 8), nullable=False)
     net_amount: Mapped[Decimal] = mapped_column(Numeric(20, 8), nullable=False)
     fee_amount: Mapped[Decimal] = mapped_column(Numeric(20, 8), nullable=False)
-    status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default=ReceivableStatus.PENDING)
     expected_settlement_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     actual_settlement_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     custom_data: Mapped[dict | None] = mapped_column("custom_data", JSONB, nullable=True)

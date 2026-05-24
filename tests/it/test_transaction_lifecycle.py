@@ -137,7 +137,7 @@ class TransactionLifecycleFullFlowTest(TestCase):
         self.assertEqual(sett_resp.json()["transaction_type"], "settlement")
 
         recv_detail = self.client.get(f"/entities/{self.entity_id}/receivables/{recv_id}")
-        self.assertEqual(recv_detail.json()["status"], "settled")
+        self.assertEqual(recv_detail.json()["status"], "SETTLED")
 
         balance_001 = _get_balance(self.db_session, self.entity.id, "1.1.001")
         balance_002 = _get_balance(self.db_session, self.entity.id, "1.1.002")
@@ -477,7 +477,7 @@ class ReverseTransactionITTest(TestCase):
         self.assertEqual(resp.status_code, 201)
 
         recv_detail = self.client.get(f"/entities/{self.entity_id}/receivables/{recv_id}")
-        self.assertEqual(recv_detail.json()["status"], "cancelled")
+        self.assertEqual(recv_detail.json()["status"], "CANCELLED")
 
     def test_reverse_nonexistent_transaction_returns_404(self):
         resp = self.client.post(
