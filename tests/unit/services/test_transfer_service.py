@@ -19,7 +19,7 @@ def _make_entity() -> Entity:
     return entity
 
 
-def _make_account(entity_id, code: str, account_type=AccountType.asset) -> ChartOfAccounts:
+def _make_account(entity_id, code: str, account_type=AccountType.ASSET) -> ChartOfAccounts:
     account = ChartOfAccounts(
         entity_id=entity_id,
         code=code,

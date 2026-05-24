@@ -20,7 +20,7 @@ class AccountProvisionITTest(TestCase):
         app.dependency_overrides.clear()
 
     def test_provision_merchant_template_returns_15_accounts(self):
-        response = self.client.post(f"/entities/{self.entity_id}/accounts", json={"template": "merchant"})
+        response = self.client.post(f"/entities/{self.entity_id}/accounts", json={"template": "MERCHANT"})
         self.assertEqual(response.status_code, 201)
         self.assertEqual(len(response.json()), 15)
 
@@ -28,15 +28,15 @@ class AccountProvisionITTest(TestCase):
         response = self.client.post(
             f"/entities/{self.entity_id}/accounts",
             json={"accounts": [
-                {"code": "1.1.001", "name": "Receivables", "account_type": "asset"},
-                {"code": "9.9.999", "name": "World", "account_type": "equity"},
+                {"code": "1.1.001", "name": "Receivables", "account_type": "ASSET"},
+                {"code": "9.9.999", "name": "World", "account_type": "EQUITY"},
             ]},
         )
         self.assertEqual(response.status_code, 201)
         self.assertEqual(len(response.json()), 2)
 
     def test_provision_same_accounts_twice_is_idempotent(self):
-        payload = {"accounts": [{"code": "1.1.001", "name": "Receivables", "account_type": "asset"}]}
+        payload = {"accounts": [{"code": "1.1.001", "name": "Receivables", "account_type": "ASSET"}]}
         r1 = self.client.post(f"/entities/{self.entity_id}/accounts", json=payload)
         r2 = self.client.post(f"/entities/{self.entity_id}/accounts", json=payload)
         self.assertEqual(r1.status_code, 201)
@@ -44,7 +44,7 @@ class AccountProvisionITTest(TestCase):
         self.assertEqual(r1.json()[0]["id"], r2.json()[0]["id"])
 
     def test_provision_entity_not_found_returns_404(self):
-        response = self.client.post(f"/entities/{uuid4()}/accounts", json={"template": "merchant"})
+        response = self.client.post(f"/entities/{uuid4()}/accounts", json={"template": "MERCHANT"})
         self.assertEqual(response.status_code, 404)
 
     def test_provision_invalid_template_returns_422(self):
@@ -70,7 +70,7 @@ class AccountListITTest(TestCase):
         self.assertEqual(response.json(), [])
 
     def test_list_accounts_after_provision_has_zero_balance(self):
-        self.client.post(f"/entities/{self.entity_id}/accounts", json={"template": "merchant"})
+        self.client.post(f"/entities/{self.entity_id}/accounts", json={"template": "MERCHANT"})
         response = self.client.get(f"/entities/{self.entity_id}/accounts")
         self.assertEqual(response.status_code, 200)
         for account in response.json():
@@ -96,7 +96,7 @@ class AccountGetITTest(TestCase):
     def test_get_account_returns_correct_data(self):
         accounts = self.client.post(
             f"/entities/{self.entity_id}/accounts",
-            json={"accounts": [{"code": "1.1.001", "name": "Receivables", "account_type": "asset"}]},
+            json={"accounts": [{"code": "1.1.001", "name": "Receivables", "account_type": "ASSET"}]},
         ).json()
         account_id = accounts[0]["id"]
         response = self.client.get(f"/entities/{self.entity_id}/accounts/{account_id}")
@@ -123,7 +123,7 @@ class AccountUpdateITTest(TestCase):
     def test_update_account_name(self):
         accounts = self.client.post(
             f"/entities/{self.entity_id}/accounts",
-            json={"accounts": [{"code": "1.1.001", "name": "Receivables", "account_type": "asset"}]},
+            json={"accounts": [{"code": "1.1.001", "name": "Receivables", "account_type": "ASSET"}]},
         ).json()
         account_id = accounts[0]["id"]
         response = self.client.patch(

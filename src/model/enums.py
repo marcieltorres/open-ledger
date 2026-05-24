@@ -1,6 +1,14 @@
 import enum
 
 
+class AccountTemplate(str, enum.Enum):
+    MERCHANT = "MERCHANT"
+    CUSTOMER = "CUSTOMER"
+    OPERATOR = "OPERATOR"
+    PLATFORM = "PLATFORM"
+    BAAS_CUSTOMER = "BAAS_CUSTOMER"
+
+
 class ClearingNetwork(str, enum.Enum):
     STR = "STR"
     CIP_PIX = "CIP-PIX"

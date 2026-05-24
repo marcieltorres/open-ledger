@@ -52,7 +52,7 @@ class TransactionService:
 
     def _compute_delta(self, account_type: str, entry_type: str, amount: Decimal) -> Decimal:
         """Returns the delta to apply to current_balance based on account and entry type."""
-        increases_on_debit = account_type in ("asset", "expense")
+        increases_on_debit = account_type in ("ASSET", "EXPENSE")
         if increases_on_debit:
             return amount if entry_type == "debit" else -amount
         return -amount if entry_type == "debit" else amount

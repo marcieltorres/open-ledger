@@ -3,7 +3,7 @@ from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, Numeric, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -13,11 +13,11 @@ from src.model.enums import Currency
 
 
 class AccountType(str, enum.Enum):
-    asset = "asset"
-    liability = "liability"
-    revenue = "revenue"
-    expense = "expense"
-    equity = "equity"
+    ASSET = "ASSET"
+    LIABILITY = "LIABILITY"
+    REVENUE = "REVENUE"
+    EXPENSE = "EXPENSE"
+    EQUITY = "EQUITY"
 
 
 class ChartOfAccounts(BaseModel):
@@ -26,7 +26,7 @@ class ChartOfAccounts(BaseModel):
     entity_id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), ForeignKey("entities.id"), nullable=False)
     code: Mapped[str] = mapped_column(String, nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
-    account_type: Mapped[AccountType] = mapped_column(Enum(AccountType), nullable=False)
+    account_type: Mapped[AccountType] = mapped_column(String(20), nullable=False)
     category: Mapped[str | None] = mapped_column(String, nullable=True)
     currency: Mapped[Currency] = mapped_column(String(3), nullable=False, default=Currency.BRL)
     current_balance: Mapped[Decimal] = mapped_column(

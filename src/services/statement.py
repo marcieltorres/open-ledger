@@ -25,7 +25,7 @@ from src.repositories.snapshot import SnapshotRepository
 
 def _asset_delta(account_type: str, entry_type: str, amount: Decimal) -> Decimal:
     """Returns net asset position change: only asset accounts count, debit=+, credit=-."""
-    if account_type != "asset":
+    if account_type != "ASSET":
         return Decimal(0)
     return amount if entry_type == "debit" else -amount
 
@@ -42,7 +42,7 @@ class StatementService:
             raise EntityNotFoundError(f"Entity '{entity_id}' not found")
 
     def _opening_balance_for_account(self, account: ChartOfAccounts, start_date: date) -> Decimal:
-        if account.account_type != "asset":
+        if account.account_type != "ASSET":
             return Decimal(0)
 
         snapshot = self._snapshot_repo.get_latest_before(account.id, start_date)
@@ -67,7 +67,7 @@ class StatementService:
     def get_entity_balance(self, entity_id: UUID, as_of: date | None) -> EntityBalanceResponse:
         self._require_entity(entity_id)
         accounts = self._account_repo.get_by_entity(entity_id)
-        asset_accounts = [a for a in accounts if a.account_type == "asset"]
+        asset_accounts = [a for a in accounts if a.account_type == "ASSET"]
         effective_date = as_of or date.today()
 
         breakdown = [
