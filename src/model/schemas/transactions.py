@@ -4,6 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
+from src.model.enums import Currency
 from src.model.schemas.receivables import ReceivableCreate, ReceivableResponse
 
 
@@ -11,7 +12,7 @@ class TransactionEntryCreate(BaseModel):
     account_code: str
     entry_type: str
     amount: Decimal
-    currency: str = "BRL"
+    currency: Currency = Currency.BRL
     custom_data: dict | None = None
 
 
@@ -30,7 +31,7 @@ class TransactionEntryResponse(BaseModel):
     transaction_id: UUID
     entry_type: str
     amount: Decimal
-    currency: str
+    currency: Currency
     custom_data: dict | None
     account: AccountRef
     created_at: datetime

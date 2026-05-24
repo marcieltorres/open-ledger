@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict
 
 from src.model.chart_of_accounts import AccountType
+from src.model.enums import Currency
 
 
 class AccountCreate(BaseModel):
@@ -12,7 +13,7 @@ class AccountCreate(BaseModel):
     name: str
     account_type: AccountType
     category: str | None = None
-    currency: str = "BRL"
+    currency: Currency = Currency.BRL
     custom_data: dict | None = None
 
 
@@ -36,7 +37,7 @@ class AccountResponse(BaseModel):
     name: str
     account_type: AccountType
     category: str | None
-    currency: str
+    currency: Currency
     current_balance: Decimal
     balance_version: int
     last_entry_at: datetime | None
