@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
-from src.model.accounting_period import PeriodStatus
+from src.model.enums import PeriodStatus
 
 
 class PeriodCreate(BaseModel):

@@ -1,16 +1,10 @@
-import enum
 from datetime import date, datetime
 
 from sqlalchemy import Date, DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.model.base_model import BaseModel
-
-
-class PeriodStatus(str, enum.Enum):
-    OPEN = "OPEN"
-    CLOSED = "CLOSED"
-    LOCKED = "LOCKED"
+from src.model.enums import PeriodStatus
 
 
 class AccountingPeriod(BaseModel):

@@ -10,7 +10,8 @@ from src.exceptions.period import (
     PeriodClosedError,
     PeriodNotFoundError,
 )
-from src.model.accounting_period import AccountingPeriod, PeriodStatus
+from src.model.accounting_period import AccountingPeriod
+from src.model.enums import PeriodStatus
 from src.model.schemas.periods import PeriodCloseRequest, PeriodCreate, PeriodLockRequest
 from src.repositories.period import PeriodRepository
 

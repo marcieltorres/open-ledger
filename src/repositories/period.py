@@ -2,7 +2,8 @@ from datetime import date
 
 from sqlalchemy.orm import Session
 
-from src.model.accounting_period import AccountingPeriod, PeriodStatus
+from src.model.accounting_period import AccountingPeriod
+from src.model.enums import PeriodStatus
 from src.repositories.base import BaseRepository
 
 

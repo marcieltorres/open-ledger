@@ -3,7 +3,8 @@ from unittest import TestCase
 from unittest.mock import MagicMock
 from uuid import uuid4
 
-from src.model.accounting_period import AccountingPeriod, PeriodStatus
+from src.model.accounting_period import AccountingPeriod
+from src.model.enums import PeriodStatus
 from src.repositories.period import PeriodRepository
 
 

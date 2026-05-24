@@ -7,9 +7,10 @@ from fastapi.testclient import TestClient
 
 from src.api import app
 from src.config.database import get_db
-from src.model.accounting_period import AccountingPeriod, PeriodStatus
+from src.model.accounting_period import AccountingPeriod
 from src.model.chart_of_accounts import AccountType, ChartOfAccounts
 from src.model.entity import Entity
+from src.model.enums import PeriodStatus
 from src.model.transaction import Transaction
 
 _EFFECTIVE_DATE = "2026-04-21"
