@@ -19,6 +19,7 @@ from src.model.constants.account_codes import (
     ACC_RECEIVABLES_ANTICIPATED,
     WORLD_ACCOUNTS,
 )
+from src.model.enums import ClearingNetwork, Currency
 from src.model.schemas.anticipations import AnticipationCreate
 from src.model.schemas.deposits import DepositCreate
 from src.model.schemas.reversals import ReversalCreate
@@ -35,7 +36,7 @@ from src.services.receivable import ReceivableService
 _PRECISION = Decimal("0.01")
 
 
-def _world_account(clearing_network: str | None) -> str:
+def _world_account(clearing_network: ClearingNetwork | None) -> str:
     return WORLD_ACCOUNTS.get(clearing_network, "9.9.999")
 
 
@@ -58,7 +59,7 @@ class TransactionService:
 
     def _validate_double_entry(self, entries: list[TransactionEntryCreate]) -> None:
         """Raises DoubleEntryImbalanceError if Σdebits ≠ Σcredits per currency."""
-        by_currency: dict[str, dict[str, Decimal]] = {}
+        by_currency: dict[Currency, dict[str, Decimal]] = {}
         for entry in entries:
             bucket = by_currency.setdefault(entry.currency, {"debit": Decimal(0), "credit": Decimal(0)})
             bucket[entry.entry_type] += entry.amount

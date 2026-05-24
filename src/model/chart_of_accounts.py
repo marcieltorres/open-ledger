@@ -9,6 +9,7 @@ from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.model.base_model import BaseModel
+from src.model.enums import Currency
 
 
 class AccountType(str, enum.Enum):
@@ -27,7 +28,7 @@ class ChartOfAccounts(BaseModel):
     name: Mapped[str] = mapped_column(String, nullable=False)
     account_type: Mapped[AccountType] = mapped_column(Enum(AccountType), nullable=False)
     category: Mapped[str | None] = mapped_column(String, nullable=True)
-    currency: Mapped[str] = mapped_column(String(3), nullable=False, default="BRL")
+    currency: Mapped[Currency] = mapped_column(String(3), nullable=False, default=Currency.BRL)
     current_balance: Mapped[Decimal] = mapped_column(
         Numeric(precision=20, scale=6), nullable=False, default=Decimal("0")
     )
