@@ -23,7 +23,7 @@ def _provision_entity_accounts(session, entity_id, include_transfer: bool = True
     accounts = [
         ChartOfAccounts(
             entity_id=entity_id, code="1.1.001", name="Checking",
-            account_type=AccountType.asset, currency="BRL",
+            account_type=AccountType.ASSET, currency="BRL",
             current_balance=Decimal("500.00"),
         ),
     ]
@@ -31,7 +31,7 @@ def _provision_entity_accounts(session, entity_id, include_transfer: bool = True
         accounts.append(
             ChartOfAccounts(
                 entity_id=entity_id, code="9.9.998", name="Transfer",
-                account_type=AccountType.asset, currency="BRL",
+                account_type=AccountType.ASSET, currency="BRL",
             )
         )
     for a in accounts:
@@ -104,8 +104,8 @@ class TransferITTest(TestCase):
         body = resp.json()
         self.assertIn("sender_transaction", body)
         self.assertIn("receiver_transaction", body)
-        self.assertEqual(body["sender_transaction"]["transaction_type"], "transfer")
-        self.assertEqual(body["receiver_transaction"]["transaction_type"], "transfer")
+        self.assertEqual(body["sender_transaction"]["transaction_type"], "TRANSFER")
+        self.assertEqual(body["receiver_transaction"]["transaction_type"], "TRANSFER")
         self.assertEqual(body["sender_transaction"]["entity_id"], str(self.sender.id))
         self.assertEqual(body["receiver_transaction"]["entity_id"], str(self.receiver.id))
 

@@ -2,29 +2,29 @@ import enum
 
 
 class TransactionStatus(str, enum.Enum):
-    pending = "pending"
-    committed = "committed"
-    voided = "voided"
+    PENDING = "PENDING"
+    COMMITTED = "COMMITTED"
+    VOIDED = "VOIDED"
 
 
 class TransactionType(str, enum.Enum):
-    sale = "sale"
-    anticipation = "anticipation"
-    settlement = "settlement"
-    deposit = "deposit"
-    withdrawal = "withdrawal"
-    transfer = "transfer"
-    reversal = "reversal"
+    SALE = "SALE"
+    ANTICIPATION = "ANTICIPATION"
+    SETTLEMENT = "SETTLEMENT"
+    DEPOSIT = "DEPOSIT"
+    WITHDRAWAL = "WITHDRAWAL"
+    TRANSFER = "TRANSFER"
+    REVERSAL = "REVERSAL"
 
 
 class EntryType(str, enum.Enum):
-    debit = "debit"
-    credit = "credit"
+    DEBIT = "DEBIT"
+    CREDIT = "CREDIT"
 
 
 class ReferenceType(str, enum.Enum):
-    receivable = "receivable"
-    transaction = "transaction"
+    RECEIVABLE = "RECEIVABLE"
+    TRANSACTION = "TRANSACTION"
 
 
 class ClearingNetwork(str, enum.Enum):
@@ -34,17 +34,17 @@ class ClearingNetwork(str, enum.Enum):
 
 
 class AccountTemplate(str, enum.Enum):
-    merchant = "merchant"
-    customer = "customer"
-    operator = "operator"
-    platform = "platform"
-    baas_customer = "baas_customer"
+    MERCHANT = "MERCHANT"
+    CUSTOMER = "CUSTOMER"
+    OPERATOR = "OPERATOR"
+    PLATFORM = "PLATFORM"
+    BAAS_CUSTOMER = "BAAS_CUSTOMER"
 
 
 class ReceivableStatus(str, enum.Enum):
-    pending = "pending"
-    settled = "settled"
-    cancelled = "cancelled"
+    PENDING = "PENDING"
+    SETTLED = "SETTLED"
+    CANCELLED = "CANCELLED"
 
 
 class Currency(str, enum.Enum):

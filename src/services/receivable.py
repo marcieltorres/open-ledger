@@ -27,7 +27,7 @@ class ReceivableService:
             gross_amount=self._round(payload.gross_amount),
             net_amount=self._round(payload.net_amount),
             fee_amount=self._round(payload.fee_amount),
-            status=ReceivableStatus.pending,
+            status=ReceivableStatus.PENDING,
             expected_settlement_date=payload.expected_settlement_date,
             custom_data=payload.custom_data,
         )
@@ -35,21 +35,21 @@ class ReceivableService:
 
     def settle(self, entity_id: UUID, receivable_id: UUID, actual_settlement_date: date) -> Receivable:
         receivable = self._get_for_entity(entity_id, receivable_id)
-        if receivable.status != ReceivableStatus.pending:
+        if receivable.status != ReceivableStatus.PENDING:
             raise InvalidReceivableStatusTransitionError(
                 f"Cannot settle receivable with status '{receivable.status}'"
             )
-        receivable.status = ReceivableStatus.settled
+        receivable.status = ReceivableStatus.SETTLED
         receivable.actual_settlement_date = actual_settlement_date
         return receivable
 
     def cancel(self, entity_id: UUID, receivable_id: UUID) -> Receivable:
         receivable = self._get_for_entity(entity_id, receivable_id)
-        if receivable.status != ReceivableStatus.pending:
+        if receivable.status != ReceivableStatus.PENDING:
             raise InvalidReceivableStatusTransitionError(
                 f"Cannot cancel receivable with status '{receivable.status}'"
             )
-        receivable.status = ReceivableStatus.cancelled
+        receivable.status = ReceivableStatus.CANCELLED
         return receivable
 
     def get_by_id(self, entity_id: UUID, receivable_id: UUID) -> Receivable:

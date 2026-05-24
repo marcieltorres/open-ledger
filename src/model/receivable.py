@@ -21,7 +21,7 @@ class Receivable(BaseModel):
     gross_amount: Mapped[Decimal] = mapped_column(Numeric(20, 8), nullable=False)
     net_amount: Mapped[Decimal] = mapped_column(Numeric(20, 8), nullable=False)
     fee_amount: Mapped[Decimal] = mapped_column(Numeric(20, 8), nullable=False)
-    status: Mapped[ReceivableStatus] = mapped_column(String(20), nullable=False, default=ReceivableStatus.pending)
+    status: Mapped[ReceivableStatus] = mapped_column(String(20), nullable=False, default=ReceivableStatus.PENDING)
     expected_settlement_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     actual_settlement_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     custom_data: Mapped[dict | None] = mapped_column("custom_data", JSONB, nullable=True)

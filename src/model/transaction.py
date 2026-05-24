@@ -22,7 +22,7 @@ class Transaction(BaseModel):
 
     entity_id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), ForeignKey("entities.id"), nullable=False)
     idempotency_key: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
-    status: Mapped[TransactionStatus] = mapped_column(String(20), nullable=False, default=TransactionStatus.committed)
+    status: Mapped[TransactionStatus] = mapped_column(String(20), nullable=False, default=TransactionStatus.COMMITTED)
     transaction_type: Mapped[TransactionType] = mapped_column(String(50), nullable=False)
     effective_date: Mapped[date] = mapped_column(Date, nullable=False)
     reference_id: Mapped[str | None] = mapped_column(String(255), nullable=True)

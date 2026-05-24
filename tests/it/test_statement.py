@@ -24,13 +24,13 @@ def _make_entity(session) -> Entity:
 def _provision_accounts(session, entity_id) -> dict[str, ChartOfAccounts]:
     accounts = [
         ChartOfAccounts(entity_id=entity_id, code="1.1.001", name="Receivables",
-                        account_type=AccountType.asset, currency="BRL"),
+                        account_type=AccountType.ASSET, currency="BRL"),
         ChartOfAccounts(entity_id=entity_id, code="3.1.001", name="Revenue",
-                        account_type=AccountType.revenue, currency="BRL"),
+                        account_type=AccountType.REVENUE, currency="BRL"),
         ChartOfAccounts(entity_id=entity_id, code="9.9.902", name="World/CIP-PIX",
-                        account_type=AccountType.asset, currency="BRL"),
+                        account_type=AccountType.ASSET, currency="BRL"),
         ChartOfAccounts(entity_id=entity_id, code="9.9.999", name="World",
-                        account_type=AccountType.asset, currency="BRL"),
+                        account_type=AccountType.ASSET, currency="BRL"),
     ]
     for a in accounts:
         session.add(a)
@@ -63,11 +63,11 @@ class GetBalanceITTest(TestCase):
         self.client.post(
             f"/entities/{self.entity_id}/transactions",
             json={
-                "transaction_type": "sale",
+                "transaction_type": "SALE",
                 "effective_date": _DATE,
                 "entries": [
-                    {"account_code": "1.1.001", "entry_type": "debit", "amount": "100.00", "currency": "BRL"},
-                    {"account_code": "3.1.001", "entry_type": "credit", "amount": "100.00", "currency": "BRL"},
+                    {"account_code": "1.1.001", "entry_type": "DEBIT", "amount": "100.00", "currency": "BRL"},
+                    {"account_code": "3.1.001", "entry_type": "CREDIT", "amount": "100.00", "currency": "BRL"},
                 ],
             },
             headers={"Idempotency-Key": str(uuid4())},
@@ -85,11 +85,11 @@ class GetBalanceITTest(TestCase):
         self.client.post(
             f"/entities/{self.entity_id}/transactions",
             json={
-                "transaction_type": "sale",
+                "transaction_type": "SALE",
                 "effective_date": _DATE,
                 "entries": [
-                    {"account_code": "1.1.001", "entry_type": "debit", "amount": "200.00", "currency": "BRL"},
-                    {"account_code": "3.1.001", "entry_type": "credit", "amount": "200.00", "currency": "BRL"},
+                    {"account_code": "1.1.001", "entry_type": "DEBIT", "amount": "200.00", "currency": "BRL"},
+                    {"account_code": "3.1.001", "entry_type": "CREDIT", "amount": "200.00", "currency": "BRL"},
                 ],
             },
             headers={"Idempotency-Key": str(uuid4())},
@@ -137,11 +137,11 @@ class GetStatementITTest(TestCase):
         self.client.post(
             f"/entities/{self.entity_id}/transactions",
             json={
-                "transaction_type": "sale",
+                "transaction_type": "SALE",
                 "effective_date": _DATE,
                 "entries": [
-                    {"account_code": "1.1.001", "entry_type": "debit", "amount": "100.00", "currency": "BRL"},
-                    {"account_code": "3.1.001", "entry_type": "credit", "amount": "100.00", "currency": "BRL"},
+                    {"account_code": "1.1.001", "entry_type": "DEBIT", "amount": "100.00", "currency": "BRL"},
+                    {"account_code": "3.1.001", "entry_type": "CREDIT", "amount": "100.00", "currency": "BRL"},
                 ],
             },
             headers={"Idempotency-Key": str(uuid4())},
@@ -203,11 +203,11 @@ class GetStatementITTest(TestCase):
         self.client.post(
             f"/entities/{self.entity_id}/transactions",
             json={
-                "transaction_type": "sale",
+                "transaction_type": "SALE",
                 "effective_date": _DATE,
                 "entries": [
-                    {"account_code": "1.1.001", "entry_type": "debit", "amount": "75.00", "currency": "BRL"},
-                    {"account_code": "3.1.001", "entry_type": "credit", "amount": "75.00", "currency": "BRL"},
+                    {"account_code": "1.1.001", "entry_type": "DEBIT", "amount": "75.00", "currency": "BRL"},
+                    {"account_code": "3.1.001", "entry_type": "CREDIT", "amount": "75.00", "currency": "BRL"},
                 ],
             },
             headers={"Idempotency-Key": str(uuid4())},

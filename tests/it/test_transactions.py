@@ -25,7 +25,7 @@ def _make_account(session, entity_id):
         entity_id=entity_id,
         code=f"1.1.{uuid4().hex[:3]}",
         name="Test Account",
-        account_type=AccountType.asset,
+        account_type=AccountType.ASSET,
         currency="BRL",
     )
     session.add(account)
@@ -37,9 +37,9 @@ def _make_transaction(session, entity_id, idempotency_key=None):
     txn = Transaction(
         entity_id=entity_id,
         idempotency_key=idempotency_key or str(uuid4()),
-        transaction_type="sale",
+        transaction_type="SALE",
         effective_date=date(2026, 4, 20),
-        status="committed",
+        status="COMMITTED",
     )
     session.add(txn)
     session.flush()
@@ -57,7 +57,7 @@ class TransactionRepositoryITTest(TestCase):
         txn = _make_transaction(self.db_session, self.entity.id)
         result = self.repo.get_by_id(txn.id)
         self.assertEqual(result.id, txn.id)
-        self.assertEqual(result.transaction_type, "sale")
+        self.assertEqual(result.transaction_type, "SALE")
 
     def test_get_by_idempotency_key(self):
         key = f"idem-{uuid4()}"
@@ -96,7 +96,7 @@ class TransactionRepositoryITTest(TestCase):
         entry = TransactionEntry(
             transaction_id=txn.id,
             account_id=account.id,
-            entry_type="debit",
+            entry_type="DEBIT",
             amount=Decimal("100.00"),
             currency="BRL",
         )
@@ -106,7 +106,7 @@ class TransactionRepositoryITTest(TestCase):
         result = self.repo.get_with_entries(self.entity.id, txn.id)
         self.assertIsNotNone(result)
         self.assertEqual(len(result.entries), 1)
-        self.assertEqual(result.entries[0].entry_type, "debit")
+        self.assertEqual(result.entries[0].entry_type, "DEBIT")
 
     def test_idempotency_key_unique_constraint_raises(self):
         key = f"dup-{uuid4()}"
@@ -128,7 +128,7 @@ class TransactionEntryRepositoryITTest(TestCase):
         entry = TransactionEntry(
             transaction_id=txn.id,
             account_id=account.id,
-            entry_type="credit",
+            entry_type="CREDIT",
             amount=Decimal("50.00"),
             currency="BRL",
         )

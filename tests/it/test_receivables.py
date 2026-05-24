@@ -11,25 +11,25 @@ from src.model.entity import Entity
 
 _EFFECTIVE_DATE = "2026-04-21"
 _SALE_ENTRIES = [
-    {"account_code": "1.1.001", "entry_type": "debit",  "amount": "100.00", "currency": "BRL"},
-    {"account_code": "3.1.001", "entry_type": "credit", "amount": "100.00", "currency": "BRL"},
-    {"account_code": "4.1.001", "entry_type": "debit",  "amount":   "2.00", "currency": "BRL"},
-    {"account_code": "1.1.001", "entry_type": "credit", "amount":   "2.00", "currency": "BRL"},
-    {"account_code": "4.1.002", "entry_type": "debit",  "amount":   "0.30", "currency": "BRL"},
-    {"account_code": "1.1.001", "entry_type": "credit", "amount":   "0.30", "currency": "BRL"},
+    {"account_code": "1.1.001", "entry_type": "DEBIT",  "amount": "100.00", "currency": "BRL"},
+    {"account_code": "3.1.001", "entry_type": "CREDIT", "amount": "100.00", "currency": "BRL"},
+    {"account_code": "4.1.001", "entry_type": "DEBIT",  "amount":   "2.00", "currency": "BRL"},
+    {"account_code": "1.1.001", "entry_type": "CREDIT", "amount":   "2.00", "currency": "BRL"},
+    {"account_code": "4.1.002", "entry_type": "DEBIT",  "amount":   "0.30", "currency": "BRL"},
+    {"account_code": "1.1.001", "entry_type": "CREDIT", "amount":   "0.30", "currency": "BRL"},
 ]
 
 
 def _provision_accounts(session, entity_id):
     accounts = [
         ChartOfAccounts(entity_id=entity_id, code="1.1.001", name="Receivables",
-                        account_type=AccountType.asset, currency="BRL"),
+                        account_type=AccountType.ASSET, currency="BRL"),
         ChartOfAccounts(entity_id=entity_id, code="3.1.001", name="Revenue",
-                        account_type=AccountType.revenue, currency="BRL"),
+                        account_type=AccountType.REVENUE, currency="BRL"),
         ChartOfAccounts(entity_id=entity_id, code="4.1.001", name="MDR Expense",
-                        account_type=AccountType.expense, currency="BRL"),
+                        account_type=AccountType.EXPENSE, currency="BRL"),
         ChartOfAccounts(entity_id=entity_id, code="4.1.002", name="Fee Expense",
-                        account_type=AccountType.expense, currency="BRL"),
+                        account_type=AccountType.EXPENSE, currency="BRL"),
     ]
     for a in accounts:
         session.add(a)
@@ -56,7 +56,7 @@ class ReceivableCreateITTest(TestCase):
 
     def _post_transaction(self, receivable_payload=None, idempotency_key=None):
         payload = {
-            "transaction_type": "sale",
+            "transaction_type": "SALE",
             "effective_date": _EFFECTIVE_DATE,
             "entries": _SALE_ENTRIES,
         }
@@ -82,13 +82,13 @@ class ReceivableCreateITTest(TestCase):
         items = recv_list.json()
         self.assertEqual(len(items), 1)
         recv_id = items[0]["id"]
-        self.assertEqual(items[0]["status"], "pending")
+        self.assertEqual(items[0]["status"], "PENDING")
         self.assertEqual(items[0]["transaction_id"], txn_id)
 
         recv_detail = self.client.get(f"/entities/{self.entity_id}/receivables/{recv_id}")
         self.assertEqual(recv_detail.status_code, 200)
         data = recv_detail.json()
-        self.assertEqual(data["status"], "pending")
+        self.assertEqual(data["status"], "PENDING")
         self.assertEqual(Decimal(data["gross_amount"]), Decimal("100.00"))
         self.assertEqual(Decimal(data["net_amount"]), Decimal("97.70"))
         self.assertEqual(Decimal(data["fee_amount"]), Decimal("2.30"))
@@ -130,7 +130,7 @@ class ReceivableCreateITTest(TestCase):
         self._post_transaction(receivable_payload=recv_payload)
         self._post_transaction(receivable_payload=recv_payload)
 
-        pending_list = self.client.get(f"/entities/{self.entity_id}/receivables?status=pending")
+        pending_list = self.client.get(f"/entities/{self.entity_id}/receivables?status=PENDING")
         self.assertEqual(pending_list.status_code, 200)
         self.assertEqual(len(pending_list.json()), 2)
 

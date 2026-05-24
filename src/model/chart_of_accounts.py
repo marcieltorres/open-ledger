@@ -13,11 +13,11 @@ from src.model.enums import Currency
 
 
 class AccountType(str, enum.Enum):
-    asset = "asset"
-    liability = "liability"
-    revenue = "revenue"
-    expense = "expense"
-    equity = "equity"
+    ASSET = "ASSET"
+    LIABILITY = "LIABILITY"
+    REVENUE = "REVENUE"
+    EXPENSE = "EXPENSE"
+    EQUITY = "EQUITY"
 
 
 class ChartOfAccounts(BaseModel):

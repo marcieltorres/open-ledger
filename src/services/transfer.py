@@ -53,7 +53,7 @@ class TransferService:
         sender_txn = self._txn_svc.post(
             payload.sender_entity_id,
             TransactionCreate(
-                transaction_type=TransactionType.transfer,
+                transaction_type=TransactionType.TRANSFER,
                 effective_date=payload.effective_date,
                 description=payload.description,
                 custom_data={
@@ -63,13 +63,13 @@ class TransferService:
                 entries=[
                     TransactionEntryCreate(
                         account_code=ACC_TRANSFER,
-                        entry_type=EntryType.debit,
+                        entry_type=EntryType.DEBIT,
                         amount=payload.amount,
                         currency=payload.currency,
                     ),
                     TransactionEntryCreate(
                         account_code=ACC_RECEIVABLES,
-                        entry_type=EntryType.credit,
+                        entry_type=EntryType.CREDIT,
                         amount=payload.amount,
                         currency=payload.currency,
                     ),
@@ -81,7 +81,7 @@ class TransferService:
         receiver_txn = self._txn_svc.post(
             payload.receiver_entity_id,
             TransactionCreate(
-                transaction_type=TransactionType.transfer,
+                transaction_type=TransactionType.TRANSFER,
                 effective_date=payload.effective_date,
                 description=payload.description,
                 custom_data={
@@ -92,13 +92,13 @@ class TransferService:
                 entries=[
                     TransactionEntryCreate(
                         account_code=ACC_RECEIVABLES,
-                        entry_type=EntryType.debit,
+                        entry_type=EntryType.DEBIT,
                         amount=payload.amount,
                         currency=payload.currency,
                     ),
                     TransactionEntryCreate(
                         account_code=ACC_TRANSFER,
-                        entry_type=EntryType.credit,
+                        entry_type=EntryType.CREDIT,
                         amount=payload.amount,
                         currency=payload.currency,
                     ),
