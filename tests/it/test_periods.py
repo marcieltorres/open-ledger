@@ -22,7 +22,7 @@ class PeriodCreateITTest(TestCase):
         self.assertEqual(response.status_code, 201)
         data = response.json()
         self.assertEqual(data["period_date"], "2025-12-01")
-        self.assertEqual(data["status"], "open")
+        self.assertEqual(data["status"], "OPEN")
         self.assertIsNotNone(data["id"])
         self.assertIsNotNone(data["opened_at"])
         self.assertIsNone(data["closed_at"])
@@ -98,7 +98,7 @@ class PeriodCloseITTest(TestCase):
         response = self.client.patch(f"/periods/{created['id']}/close", json={"closed_by": "admin"})
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data["status"], "closed")
+        self.assertEqual(data["status"], "CLOSED")
         self.assertIsNotNone(data["closed_at"])
         self.assertEqual(data["closed_by"], "admin")
 
@@ -128,7 +128,7 @@ class PeriodReopenITTest(TestCase):
         self.client.patch(f"/periods/{created['id']}/close", json={"closed_by": "admin"})
         response = self.client.patch(f"/periods/{created['id']}/reopen")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["status"], "open")
+        self.assertEqual(response.json()["status"], "OPEN")
 
     def test_reopen_locked_period_returns_422(self):
         created = self.client.post("/periods", json={"period_date": "2025-04-01"}).json()
@@ -158,7 +158,7 @@ class PeriodLockITTest(TestCase):
         response = self.client.patch(f"/periods/{created['id']}/lock", json={"locked_by": "admin"})
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data["status"], "locked")
+        self.assertEqual(data["status"], "LOCKED")
         self.assertIsNotNone(data["locked_at"])
         self.assertEqual(data["locked_by"], "admin")
 

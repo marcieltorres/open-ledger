@@ -13,7 +13,7 @@ class PeriodRepository(BaseRepository[AccountingPeriod]):
     def get_open_for_date(self, period_date: date) -> AccountingPeriod | None:
         return (
             self.db.query(AccountingPeriod)
-            .filter(AccountingPeriod.period_date == period_date, AccountingPeriod.status == PeriodStatus.open)
+            .filter(AccountingPeriod.period_date == period_date, AccountingPeriod.status == PeriodStatus.OPEN)
             .first()
         )
 
@@ -22,7 +22,7 @@ class PeriodRepository(BaseRepository[AccountingPeriod]):
             self.db.query(AccountingPeriod)
             .filter(
                 AccountingPeriod.period_date == period_date,
-                AccountingPeriod.status.in_([PeriodStatus.closed, PeriodStatus.locked]),
+                AccountingPeriod.status.in_([PeriodStatus.CLOSED, PeriodStatus.LOCKED]),
             )
             .first()
         )

@@ -41,7 +41,7 @@ def _provision_accounts(session, entity_id):
 
 def _close_period(session, period_date: date):
     period = AccountingPeriod(
-        period_date=period_date, status=PeriodStatus.closed,
+        period_date=period_date, status=PeriodStatus.CLOSED,
         opened_at=datetime.now(timezone.utc), closed_at=datetime.now(timezone.utc),
     )
     session.add(period)
