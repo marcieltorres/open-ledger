@@ -26,12 +26,7 @@ def upgrade() -> None:
     )
     op.execute('DROP TYPE IF EXISTS periodstatus')
     op.drop_index('idx_periods_status', table_name='accounting_periods')
-    op.create_index(
-        'idx_periods_status',
-        'accounting_periods',
-        ['status'],
-        postgresql_where=sa.text("status = 'OPEN'"),
-    )
+    op.create_index('idx_periods_status', 'accounting_periods', ['status'])
 
 
 def downgrade() -> None:
