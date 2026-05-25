@@ -8,8 +8,9 @@ from fastapi.testclient import TestClient
 from src.api import app
 from src.config.database import get_db
 from src.model.account_balance_snapshot import AccountBalanceSnapshot
-from src.model.chart_of_accounts import AccountType, ChartOfAccounts
+from src.model.chart_of_accounts import ChartOfAccounts
 from src.model.entity import Entity
+from src.model.enums import AccountType
 
 _DATE = "2025-12-10"
 
@@ -24,13 +25,13 @@ def _make_entity(session) -> Entity:
 def _provision_accounts(session, entity_id) -> dict[str, ChartOfAccounts]:
     accounts = [
         ChartOfAccounts(entity_id=entity_id, code="1.1.001", name="Receivables",
-                        account_type=AccountType.asset, currency="BRL"),
+                        account_type=AccountType.ASSET, currency="BRL"),
         ChartOfAccounts(entity_id=entity_id, code="3.1.001", name="Revenue",
-                        account_type=AccountType.revenue, currency="BRL"),
+                        account_type=AccountType.REVENUE, currency="BRL"),
         ChartOfAccounts(entity_id=entity_id, code="9.9.902", name="World/CIP-PIX",
-                        account_type=AccountType.asset, currency="BRL"),
+                        account_type=AccountType.ASSET, currency="BRL"),
         ChartOfAccounts(entity_id=entity_id, code="9.9.999", name="World",
-                        account_type=AccountType.asset, currency="BRL"),
+                        account_type=AccountType.ASSET, currency="BRL"),
     ]
     for a in accounts:
         session.add(a)

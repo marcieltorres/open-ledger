@@ -6,14 +6,15 @@ from uuid import uuid4
 
 from src.exceptions.entity import EntityNotFoundError
 from src.model.account_balance_snapshot import AccountBalanceSnapshot
-from src.model.chart_of_accounts import AccountType, ChartOfAccounts
+from src.model.chart_of_accounts import ChartOfAccounts
+from src.model.enums import AccountType
 from src.model.schemas.statement import EntityBalanceResponse
 from src.model.transaction import Transaction
 from src.model.transaction_entry import TransactionEntry
 from src.services.statement import StatementService, _asset_delta
 
 
-def _make_account(account_type=AccountType.asset, balance="0", code="1.1.001") -> ChartOfAccounts:
+def _make_account(account_type=AccountType.ASSET, balance="0", code="1.1.001") -> ChartOfAccounts:
     acc = ChartOfAccounts(
         entity_id=uuid4(),
         code=code,
@@ -63,15 +64,15 @@ def _make_service() -> StatementService:
 
 class AssetDeltaTest(TestCase):
     def test_asset_debit_positive(self):
-        self.assertEqual(_asset_delta("asset", "debit", Decimal("100")), Decimal("100"))
+        self.assertEqual(_asset_delta("ASSET", "debit", Decimal("100")), Decimal("100"))
 
     def test_asset_credit_negative(self):
-        self.assertEqual(_asset_delta("asset", "credit", Decimal("100")), Decimal("-100"))
+        self.assertEqual(_asset_delta("ASSET", "credit", Decimal("100")), Decimal("-100"))
 
     def test_non_asset_returns_zero(self):
-        self.assertEqual(_asset_delta("revenue", "credit", Decimal("100")), Decimal("0"))
-        self.assertEqual(_asset_delta("expense", "debit", Decimal("100")), Decimal("0"))
-        self.assertEqual(_asset_delta("liability", "credit", Decimal("50")), Decimal("0"))
+        self.assertEqual(_asset_delta("REVENUE", "credit", Decimal("100")), Decimal("0"))
+        self.assertEqual(_asset_delta("EXPENSE", "debit", Decimal("100")), Decimal("0"))
+        self.assertEqual(_asset_delta("LIABILITY", "credit", Decimal("50")), Decimal("0"))
 
 
 class GetEntityBalanceTest(TestCase):
@@ -94,8 +95,8 @@ class GetEntityBalanceTest(TestCase):
         self.assertEqual(result.breakdown, [])
 
     def test_sums_only_asset_accounts(self):
-        asset = _make_account(account_type=AccountType.asset, balance="150.00")
-        revenue = _make_account(account_type=AccountType.revenue, balance="300.00", code="3.1.001")
+        asset = _make_account(account_type=AccountType.ASSET, balance="150.00")
+        revenue = _make_account(account_type=AccountType.REVENUE, balance="300.00", code="3.1.001")
         self.service._entity_repo.exists.return_value = True
         self.service._account_repo.get_by_entity.return_value = [asset, revenue]
 
@@ -106,7 +107,7 @@ class GetEntityBalanceTest(TestCase):
         self.assertEqual(result.breakdown[0].code, asset.code)
 
     def test_historical_balance_with_as_of(self):
-        asset = _make_account(account_type=AccountType.asset, balance="0")
+        asset = _make_account(account_type=AccountType.ASSET, balance="0")
         self.service._entity_repo.exists.return_value = True
         self.service._account_repo.get_by_entity.return_value = [asset]
         snapshot = AccountBalanceSnapshot(account_id=asset.id, snapshot_date=date(2025, 11, 30), balance=Decimal("400"))
@@ -124,13 +125,13 @@ class OpeningBalanceTest(TestCase):
         self.service = _make_service()
 
     def test_non_asset_account_returns_zero(self):
-        acc = _make_account(account_type=AccountType.revenue)
+        acc = _make_account(account_type=AccountType.REVENUE)
         result = self.service._opening_balance_for_account(acc, date(2025, 12, 1))
         self.assertEqual(result, Decimal(0))
         self.service._snapshot_repo.get_latest_before.assert_not_called()
 
     def test_uses_snapshot_when_available(self):
-        acc = _make_account(account_type=AccountType.asset)
+        acc = _make_account(account_type=AccountType.ASSET)
         snapshot = AccountBalanceSnapshot(account_id=acc.id, snapshot_date=date(2025, 11, 30), balance=Decimal("200"))
         self.service._snapshot_repo.get_latest_before.return_value = snapshot
 
@@ -139,7 +140,7 @@ class OpeningBalanceTest(TestCase):
         self.assertEqual(result, Decimal("200"))
 
     def test_fallback_to_entries_when_no_snapshot(self):
-        acc = _make_account(account_type=AccountType.asset)
+        acc = _make_account(account_type=AccountType.ASSET)
         self.service._snapshot_repo.get_latest_before.return_value = None
 
         entry1 = _make_entry(acc, "debit", "100")
@@ -156,7 +157,7 @@ class OpeningBalanceTest(TestCase):
         self.assertEqual(result, Decimal("70"))
 
     def test_fallback_no_entries_returns_zero(self):
-        acc = _make_account(account_type=AccountType.asset)
+        acc = _make_account(account_type=AccountType.ASSET)
         self.service._snapshot_repo.get_latest_before.return_value = None
 
         mock_chain = MagicMock()
@@ -220,8 +221,8 @@ class BuildStatementTest(TestCase):
         self.assertEqual(result.entries, [])
 
     def test_sale_increases_running_balance(self):
-        acc_recv = _make_account(account_type=AccountType.asset, code="1.1.001")
-        acc_rev = _make_account(account_type=AccountType.revenue, code="3.1.001")
+        acc_recv = _make_account(account_type=AccountType.ASSET, code="1.1.001")
+        acc_rev = _make_account(account_type=AccountType.REVENUE, code="3.1.001")
         self.service._account_repo.get_by_entity.return_value = [acc_recv, acc_rev]
         # snapshot returns zero opening for asset account; non-asset returns 0 immediately
         snap = AccountBalanceSnapshot(account_id=acc_recv.id, snapshot_date=date(2025, 11, 30), balance=Decimal("0"))
@@ -249,8 +250,8 @@ class BuildStatementTest(TestCase):
         self.assertEqual(result.summary.closing_balance, Decimal("100"))
 
     def test_total_out_on_net_negative_asset_delta(self):
-        acc_recv = _make_account(account_type=AccountType.asset, code="1.1.001")
-        acc_world = _make_account(account_type=AccountType.asset, code="9.9.999")
+        acc_recv = _make_account(account_type=AccountType.ASSET, code="1.1.001")
+        acc_world = _make_account(account_type=AccountType.ASSET, code="9.9.999")
         self.service._account_repo.get_by_entity.return_value = [acc_recv, acc_world]
         snap = AccountBalanceSnapshot(account_id=acc_recv.id, snapshot_date=date(2025, 11, 30), balance=Decimal("100"))
         snap2 = AccountBalanceSnapshot(account_id=acc_world.id, snapshot_date=date(2025, 11, 30), balance=Decimal("0"))
@@ -278,8 +279,8 @@ class BuildStatementTest(TestCase):
         self.assertEqual(result.summary.opening_balance, Decimal("100"))
 
     def test_total_out_on_negative_net_asset_delta(self):
-        acc_recv = _make_account(account_type=AccountType.asset, code="1.1.001")
-        acc_rev = _make_account(account_type=AccountType.revenue, code="3.1.001")
+        acc_recv = _make_account(account_type=AccountType.ASSET, code="1.1.001")
+        acc_rev = _make_account(account_type=AccountType.REVENUE, code="3.1.001")
         self.service._account_repo.get_by_entity.return_value = [acc_recv, acc_rev]
         snap = AccountBalanceSnapshot(account_id=acc_recv.id, snapshot_date=date(2025, 11, 30), balance=Decimal("100"))
         self.service._snapshot_repo.get_latest_before.return_value = snap

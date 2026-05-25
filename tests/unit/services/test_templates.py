@@ -6,11 +6,11 @@ from src.services.templates import get_template
 
 class TemplatesTest(TestCase):
     def test_get_merchant_template_returns_15_accounts(self):
-        accounts = get_template("merchant")
+        accounts = get_template("MERCHANT")
         self.assertEqual(len(accounts), 15)
 
     def test_all_templates_include_transfer_and_world(self):
-        for name in ("merchant", "customer", "operator", "platform", "baas_customer"):
+        for name in ("MERCHANT", "CUSTOMER", "OPERATOR", "PLATFORM", "BAAS_CUSTOMER"):
             accounts = get_template(name)
             codes = [a.code for a in accounts]
             self.assertIn("9.9.998", codes, f"9.9.998 missing in {name}")
@@ -18,29 +18,29 @@ class TemplatesTest(TestCase):
 
     def test_unknown_template_raises_invalid_template_error(self):
         with self.assertRaises(InvalidTemplateError):
-            get_template("unknown")
+            get_template("UNKNOWN")
 
     def test_merchant_template_unique_codes(self):
-        accounts = get_template("merchant")
+        accounts = get_template("MERCHANT")
         codes = [a.code for a in accounts]
         self.assertEqual(len(codes), len(set(codes)))
 
     def test_customer_template_unique_codes(self):
-        accounts = get_template("customer")
+        accounts = get_template("CUSTOMER")
         codes = [a.code for a in accounts]
         self.assertEqual(len(codes), len(set(codes)))
 
     def test_operator_template_unique_codes(self):
-        accounts = get_template("operator")
+        accounts = get_template("OPERATOR")
         codes = [a.code for a in accounts]
         self.assertEqual(len(codes), len(set(codes)))
 
     def test_platform_template_unique_codes(self):
-        accounts = get_template("platform")
+        accounts = get_template("PLATFORM")
         codes = [a.code for a in accounts]
         self.assertEqual(len(codes), len(set(codes)))
 
     def test_baas_customer_template_unique_codes(self):
-        accounts = get_template("baas_customer")
+        accounts = get_template("BAAS_CUSTOMER")
         codes = [a.code for a in accounts]
         self.assertEqual(len(codes), len(set(codes)))

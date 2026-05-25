@@ -5,7 +5,8 @@ from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 from src.exceptions.transaction import DoubleEntryImbalanceError, InvalidStatusTransitionError, TransactionNotFoundError
-from src.model.chart_of_accounts import AccountType, ChartOfAccounts
+from src.model.chart_of_accounts import ChartOfAccounts
+from src.model.enums import AccountType
 from src.model.schemas.transactions import TransactionCreate, TransactionEntryCreate
 from src.services.transaction import TransactionService
 
@@ -16,7 +17,7 @@ def _entry(entry_type: str, amount: str, currency: str = "BRL") -> TransactionEn
     )
 
 
-def _make_account(account_type: AccountType = AccountType.asset, balance: str = "0") -> ChartOfAccounts:
+def _make_account(account_type: AccountType = AccountType.ASSET, balance: str = "0") -> ChartOfAccounts:
     account = ChartOfAccounts(
         entity_id=uuid4(),
         code="1.1.001",
@@ -60,34 +61,34 @@ class ComputeDeltaTest(TestCase):
         self.service = _make_service()
 
     def test_asset_debit(self):
-        self.assertEqual(self.service._compute_delta("asset", "debit", Decimal("100")), Decimal("100"))
+        self.assertEqual(self.service._compute_delta("ASSET", "debit", Decimal("100")), Decimal("100"))
 
     def test_asset_credit(self):
-        self.assertEqual(self.service._compute_delta("asset", "credit", Decimal("100")), Decimal("-100"))
+        self.assertEqual(self.service._compute_delta("ASSET", "credit", Decimal("100")), Decimal("-100"))
 
     def test_expense_debit(self):
-        self.assertEqual(self.service._compute_delta("expense", "debit", Decimal("100")), Decimal("100"))
+        self.assertEqual(self.service._compute_delta("EXPENSE", "debit", Decimal("100")), Decimal("100"))
 
     def test_expense_credit(self):
-        self.assertEqual(self.service._compute_delta("expense", "credit", Decimal("100")), Decimal("-100"))
+        self.assertEqual(self.service._compute_delta("EXPENSE", "credit", Decimal("100")), Decimal("-100"))
 
     def test_liability_debit(self):
-        self.assertEqual(self.service._compute_delta("liability", "debit", Decimal("100")), Decimal("-100"))
+        self.assertEqual(self.service._compute_delta("LIABILITY", "debit", Decimal("100")), Decimal("-100"))
 
     def test_liability_credit(self):
-        self.assertEqual(self.service._compute_delta("liability", "credit", Decimal("100")), Decimal("100"))
+        self.assertEqual(self.service._compute_delta("LIABILITY", "credit", Decimal("100")), Decimal("100"))
 
     def test_revenue_debit(self):
-        self.assertEqual(self.service._compute_delta("revenue", "debit", Decimal("100")), Decimal("-100"))
+        self.assertEqual(self.service._compute_delta("REVENUE", "debit", Decimal("100")), Decimal("-100"))
 
     def test_revenue_credit(self):
-        self.assertEqual(self.service._compute_delta("revenue", "credit", Decimal("100")), Decimal("100"))
+        self.assertEqual(self.service._compute_delta("REVENUE", "credit", Decimal("100")), Decimal("100"))
 
     def test_equity_debit(self):
-        self.assertEqual(self.service._compute_delta("equity", "debit", Decimal("100")), Decimal("-100"))
+        self.assertEqual(self.service._compute_delta("EQUITY", "debit", Decimal("100")), Decimal("-100"))
 
     def test_equity_credit(self):
-        self.assertEqual(self.service._compute_delta("equity", "credit", Decimal("100")), Decimal("100"))
+        self.assertEqual(self.service._compute_delta("EQUITY", "credit", Decimal("100")), Decimal("100"))
 
 
 class ValidateDoubleEntryTest(TestCase):
@@ -133,8 +134,8 @@ class ApplyBalanceUpdatesTest(TestCase):
         self.session.execute.return_value.scalar_one.return_value = locked_account
 
     def test_asset_debit_increases_balance(self):
-        account = _make_account(AccountType.asset, "100")
-        locked = _make_account(AccountType.asset, "100")
+        account = _make_account(AccountType.ASSET, "100")
+        locked = _make_account(AccountType.ASSET, "100")
         locked.id = account.id
         self._setup_locked(locked)
 
@@ -145,8 +146,8 @@ class ApplyBalanceUpdatesTest(TestCase):
         self.assertIsNotNone(locked.last_entry_at)
 
     def test_asset_credit_decreases_balance(self):
-        account = _make_account(AccountType.asset, "200")
-        locked = _make_account(AccountType.asset, "200")
+        account = _make_account(AccountType.ASSET, "200")
+        locked = _make_account(AccountType.ASSET, "200")
         locked.id = account.id
         locked.balance_version = 2
         self._setup_locked(locked)
@@ -157,8 +158,8 @@ class ApplyBalanceUpdatesTest(TestCase):
         self.assertEqual(locked.balance_version, 3)
 
     def test_liability_credit_increases_balance(self):
-        account = _make_account(AccountType.liability, "0")
-        locked = _make_account(AccountType.liability, "0")
+        account = _make_account(AccountType.LIABILITY, "0")
+        locked = _make_account(AccountType.LIABILITY, "0")
         locked.id = account.id
         self._setup_locked(locked)
 
@@ -168,7 +169,7 @@ class ApplyBalanceUpdatesTest(TestCase):
 
     def test_execute_called_once_per_entry(self):
         account = _make_account()
-        locked = _make_account(AccountType.asset, "0")
+        locked = _make_account(AccountType.ASSET, "0")
         locked.id = account.id
         self._setup_locked(locked)
 
@@ -177,10 +178,10 @@ class ApplyBalanceUpdatesTest(TestCase):
         self.session.execute.assert_called_once()
 
     def test_multiple_entries_execute_called_for_each(self):
-        account1 = _make_account(AccountType.asset, "0")
-        account2 = _make_account(AccountType.liability, "0")
-        locked1 = _make_account(AccountType.asset, "0")
-        locked2 = _make_account(AccountType.liability, "0")
+        account1 = _make_account(AccountType.ASSET, "0")
+        account2 = _make_account(AccountType.LIABILITY, "0")
+        locked1 = _make_account(AccountType.ASSET, "0")
+        locked2 = _make_account(AccountType.LIABILITY, "0")
         locked1.id = account1.id
         locked2.id = account2.id
         locked1.balance_version = 0
@@ -288,16 +289,16 @@ class ComputeDeltaReversalTest(TestCase):
         self.service = _make_service()
 
     def test_debit_original_undone_by_credit_mirror(self):
-        original_delta = self.service._compute_delta("asset", "debit", Decimal("100"))
-        mirror_delta = self.service._compute_delta("asset", "credit", Decimal("100"))
+        original_delta = self.service._compute_delta("ASSET", "debit", Decimal("100"))
+        mirror_delta = self.service._compute_delta("ASSET", "credit", Decimal("100"))
         self.assertEqual(original_delta + mirror_delta, Decimal("0"))
 
     def test_credit_original_undone_by_debit_mirror(self):
-        original_delta = self.service._compute_delta("revenue", "credit", Decimal("100"))
-        mirror_delta = self.service._compute_delta("revenue", "debit", Decimal("100"))
+        original_delta = self.service._compute_delta("REVENUE", "credit", Decimal("100"))
+        mirror_delta = self.service._compute_delta("REVENUE", "debit", Decimal("100"))
         self.assertEqual(original_delta + mirror_delta, Decimal("0"))
 
     def test_liability_credit_undone_by_debit_mirror(self):
-        original_delta = self.service._compute_delta("liability", "credit", Decimal("50"))
-        mirror_delta = self.service._compute_delta("liability", "debit", Decimal("50"))
+        original_delta = self.service._compute_delta("LIABILITY", "credit", Decimal("50"))
+        mirror_delta = self.service._compute_delta("LIABILITY", "debit", Decimal("50"))
         self.assertEqual(original_delta + mirror_delta, Decimal("0"))

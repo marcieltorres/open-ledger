@@ -4,7 +4,8 @@ from uuid import uuid4
 
 from src.exceptions.account import AccountNotFoundError, InvalidTemplateError
 from src.exceptions.entity import EntityNotFoundError
-from src.model.chart_of_accounts import AccountType, ChartOfAccounts
+from src.model.chart_of_accounts import ChartOfAccounts
+from src.model.enums import AccountTemplate, AccountType
 from src.model.schemas.accounts import AccountCreate, AccountProvision, AccountUpdate
 from src.services.account import AccountService
 
@@ -14,7 +15,7 @@ def _make_account(**kwargs) -> ChartOfAccounts:
         entity_id=kwargs.get("entity_id", uuid4()),
         code=kwargs.get("code", "1.1.001"),
         name=kwargs.get("name", "Receivables"),
-        account_type=kwargs.get("account_type", AccountType.asset),
+        account_type=kwargs.get("account_type", AccountType.ASSET),
         currency=kwargs.get("currency", "BRL"),
     )
     account.id = kwargs.get("id", uuid4())
@@ -36,11 +37,11 @@ class AccountServiceProvisionTest(TestCase):
 
         with patch("src.services.account.get_template") as mock_get:
             mock_get.return_value = [
-                AccountCreate(code="9.9.998", name="Transfer", account_type=AccountType.equity),
-                AccountCreate(code="9.9.999", name="World", account_type=AccountType.equity),
+                AccountCreate(code="9.9.998", name="Transfer", account_type=AccountType.EQUITY),
+                AccountCreate(code="9.9.999", name="World", account_type=AccountType.EQUITY),
             ]
-            result = self.service.provision(entity_id, AccountProvision(template="merchant"))
-            mock_get.assert_called_once_with("merchant")
+            result = self.service.provision(entity_id, AccountProvision(template="MERCHANT"))
+            mock_get.assert_called_once_with(AccountTemplate.MERCHANT)
             self.assertEqual(len(result), 2)
 
     def test_provision_with_inline_accounts(self):
@@ -52,7 +53,7 @@ class AccountServiceProvisionTest(TestCase):
         result = self.service.provision(
             entity_id,
             AccountProvision(accounts=[
-                AccountCreate(code="1.1.001", name="Receivables", account_type=AccountType.asset),
+                AccountCreate(code="1.1.001", name="Receivables", account_type=AccountType.ASSET),
             ]),
         )
         self.assertEqual(len(result), 1)
@@ -60,7 +61,7 @@ class AccountServiceProvisionTest(TestCase):
     def test_provision_entity_not_found_raises(self):
         self.service._entity_repo.exists.return_value = False
         with self.assertRaises(EntityNotFoundError):
-            self.service.provision(uuid4(), AccountProvision(template="merchant"))
+            self.service.provision(uuid4(), AccountProvision(template="MERCHANT"))
 
     def test_provision_duplicate_is_idempotent(self):
         entity_id = uuid4()
@@ -71,7 +72,7 @@ class AccountServiceProvisionTest(TestCase):
         result = self.service.provision(
             entity_id,
             AccountProvision(accounts=[
-                AccountCreate(code="1.1.001", name="Receivables", account_type=AccountType.asset),
+                AccountCreate(code="1.1.001", name="Receivables", account_type=AccountType.ASSET),
             ]),
         )
         self.assertEqual(result, [existing])

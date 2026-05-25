@@ -8,9 +8,9 @@ from fastapi.testclient import TestClient
 from src.api import app
 from src.config.database import get_db
 from src.model.accounting_period import AccountingPeriod
-from src.model.chart_of_accounts import AccountType, ChartOfAccounts
+from src.model.chart_of_accounts import ChartOfAccounts
 from src.model.entity import Entity
-from src.model.enums import PeriodStatus
+from src.model.enums import AccountType, PeriodStatus
 
 _EFFECTIVE_DATE = "2026-04-20"
 _SALE_ENTRIES = [
@@ -26,13 +26,13 @@ _SALE_ENTRIES = [
 def _provision_accounts(session, entity_id):
     accounts = [
         ChartOfAccounts(entity_id=entity_id, code="1.1.001", name="Receivables",
-                        account_type=AccountType.asset, currency="BRL"),
+                        account_type=AccountType.ASSET, currency="BRL"),
         ChartOfAccounts(entity_id=entity_id, code="3.1.001", name="Revenue",
-                        account_type=AccountType.revenue, currency="BRL"),
+                        account_type=AccountType.REVENUE, currency="BRL"),
         ChartOfAccounts(entity_id=entity_id, code="4.1.001", name="MDR Expense",
-                        account_type=AccountType.expense, currency="BRL"),
+                        account_type=AccountType.EXPENSE, currency="BRL"),
         ChartOfAccounts(entity_id=entity_id, code="4.1.002", name="Fee Expense",
-                        account_type=AccountType.expense, currency="BRL"),
+                        account_type=AccountType.EXPENSE, currency="BRL"),
     ]
     for a in accounts:
         session.add(a)

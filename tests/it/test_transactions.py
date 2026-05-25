@@ -6,8 +6,9 @@ from uuid import uuid4
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from src.model.chart_of_accounts import AccountType, ChartOfAccounts
+from src.model.chart_of_accounts import ChartOfAccounts
 from src.model.entity import Entity
+from src.model.enums import AccountType
 from src.model.transaction import Transaction
 from src.model.transaction_entry import TransactionEntry
 from src.repositories.transaction import TransactionEntryRepository, TransactionRepository
@@ -25,7 +26,7 @@ def _make_account(session, entity_id):
         entity_id=entity_id,
         code=f"1.1.{uuid4().hex[:3]}",
         name="Test Account",
-        account_type=AccountType.asset,
+        account_type=AccountType.ASSET,
         currency="BRL",
     )
     session.add(account)
