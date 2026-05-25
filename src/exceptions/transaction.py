@@ -28,3 +28,7 @@ class AccountCodeNotFoundError(Exception):
 
 class InvalidStatusTransitionError(Exception):
     pass
+
+
+class ReceivableInferenceError(Exception):
+    pass

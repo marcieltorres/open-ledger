@@ -80,7 +80,7 @@ class TransactionLifecycleFullFlowTest(TestCase):
     def tearDown(self):
         app.dependency_overrides.clear()
 
-    def _post_sale(self, recv_payload=None, idem_key=None):
+    def _post_sale(self, settlement_date=None, idem_key=None):
         payload = {
             "transaction_type": "SALE",
             "effective_date": _EFFECTIVE_DATE,
@@ -89,8 +89,8 @@ class TransactionLifecycleFullFlowTest(TestCase):
                 {"account_code": "3.1.001", "entry_type": "CREDIT", "amount": "97.70", "currency": "BRL"},
             ],
         }
-        if recv_payload:
-            payload["receivable"] = recv_payload
+        if settlement_date:
+            payload["expected_settlement_date"] = settlement_date
         return self.client.post(
             f"/entities/{self.entity_id}/transactions",
             json=payload,
@@ -98,11 +98,7 @@ class TransactionLifecycleFullFlowTest(TestCase):
         )
 
     def test_full_sale_anticipation_settlement_flow(self):
-        recv_payload = {
-            "gross_amount": "100.00", "net_amount": "97.70", "fee_amount": "2.30",
-            "expected_settlement_date": _EFFECTIVE_DATE,
-        }
-        sale_resp = self._post_sale(recv_payload=recv_payload)
+        sale_resp = self._post_sale(settlement_date=_EFFECTIVE_DATE)
         self.assertEqual(sale_resp.status_code, 201)
 
         recv_list = self.client.get(f"/entities/{self.entity_id}/receivables")
@@ -244,7 +240,7 @@ class TransactionLifecycleErrorHandlingTest(TestCase):
                     {"account_code": "1.1.001", "entry_type": "DEBIT",  "amount": "97.70", "currency": "BRL"},
                     {"account_code": "3.1.001", "entry_type": "CREDIT", "amount": "97.70", "currency": "BRL"},
                 ],
-                "receivable": {"gross_amount": "100.00", "net_amount": "97.70", "fee_amount": "2.30"},
+                "expected_settlement_date": _EFFECTIVE_DATE,
             },
             headers={"Idempotency-Key": str(uuid4())},
         )
@@ -457,9 +453,7 @@ class ReverseTransactionITTest(TestCase):
                     {"account_code": "1.1.001", "entry_type": "DEBIT",  "amount": "97.70", "currency": "BRL"},
                     {"account_code": "3.1.001", "entry_type": "CREDIT", "amount": "97.70", "currency": "BRL"},
                 ],
-                "receivable": {
-                    "gross_amount": "100.00", "net_amount": "97.70", "fee_amount": "2.30",
-                },
+                "expected_settlement_date": _EFFECTIVE_DATE,
             },
             headers={"Idempotency-Key": str(uuid4())},
         )
@@ -497,7 +491,7 @@ class ReverseTransactionITTest(TestCase):
                     {"account_code": "1.1.001", "entry_type": "DEBIT",  "amount": "97.70", "currency": "BRL"},
                     {"account_code": "3.1.001", "entry_type": "CREDIT", "amount": "97.70", "currency": "BRL"},
                 ],
-                "receivable": {"gross_amount": "100.00", "net_amount": "97.70", "fee_amount": "2.30"},
+                "expected_settlement_date": _EFFECTIVE_DATE,
             },
             headers={"Idempotency-Key": str(uuid4())},
         )

@@ -11,6 +11,7 @@ from src.exceptions.transaction import (
     CurrencyMismatchError,
     DoubleEntryImbalanceError,
     InvalidStatusTransitionError,
+    ReceivableInferenceError,
     TransactionNotFoundError,
 )
 from src.model.schemas.anticipations import AnticipationCreate
@@ -23,7 +24,13 @@ from src.services.transaction import TransactionService
 
 router = APIRouter(prefix="/entities", tags=["transactions"])
 
-_UNPROCESSABLE = (PeriodClosedError, AccountCodeNotFoundError, CurrencyMismatchError, DoubleEntryImbalanceError)
+_UNPROCESSABLE = (
+    PeriodClosedError,
+    AccountCodeNotFoundError,
+    CurrencyMismatchError,
+    DoubleEntryImbalanceError,
+    ReceivableInferenceError,
+)
 _UNPROCESSABLE_WITH_RECV = (
     PeriodClosedError,
     AccountCodeNotFoundError,

@@ -55,25 +55,19 @@ class ReceivableCreateITTest(TestCase):
     def tearDown(self):
         app.dependency_overrides.clear()
 
-    def _post_transaction(self, receivable_payload=None, idempotency_key=None):
+    def _post_transaction(self, settlement_date=None, idempotency_key=None):
         payload = {
             "transaction_type": "SALE",
             "effective_date": _EFFECTIVE_DATE,
             "entries": _SALE_ENTRIES,
         }
-        if receivable_payload is not None:
-            payload["receivable"] = receivable_payload
+        if settlement_date is not None:
+            payload["expected_settlement_date"] = settlement_date
         headers = {"Idempotency-Key": idempotency_key or str(uuid4())}
         return self.client.post(f"/entities/{self.entity_id}/transactions", json=payload, headers=headers)
 
     def test_post_transaction_with_receivable_creates_pending_receivable(self):
-        recv_payload = {
-            "gross_amount": "100.00",
-            "net_amount": "97.70",
-            "fee_amount": "2.30",
-            "expected_settlement_date": "2026-05-01",
-        }
-        resp = self._post_transaction(receivable_payload=recv_payload)
+        resp = self._post_transaction(settlement_date="2026-05-01")
         self.assertEqual(resp.status_code, 201)
 
         txn_id = resp.json()["id"]
@@ -104,12 +98,7 @@ class ReceivableCreateITTest(TestCase):
         self.assertEqual(recv_list.json(), [])
 
     def test_get_receivable_wrong_entity_returns_404(self):
-        recv_payload = {
-            "gross_amount": "100.00",
-            "net_amount": "97.70",
-            "fee_amount": "2.30",
-        }
-        resp = self._post_transaction(receivable_payload=recv_payload)
+        resp = self._post_transaction(settlement_date="2026-05-01")
         self.assertEqual(resp.status_code, 201)
 
         recv_list = self.client.get(f"/entities/{self.entity_id}/receivables")
@@ -123,13 +112,8 @@ class ReceivableCreateITTest(TestCase):
         self.assertEqual(resp.status_code, 404)
 
     def test_list_receivables_filter_by_status(self):
-        recv_payload = {
-            "gross_amount": "100.00",
-            "net_amount": "97.70",
-            "fee_amount": "2.30",
-        }
-        self._post_transaction(receivable_payload=recv_payload)
-        self._post_transaction(receivable_payload=recv_payload)
+        self._post_transaction(settlement_date="2026-05-01")
+        self._post_transaction(settlement_date="2026-05-01")
 
         pending_list = self.client.get(f"/entities/{self.entity_id}/receivables?status=PENDING")
         self.assertEqual(pending_list.status_code, 200)
@@ -140,12 +124,7 @@ class ReceivableCreateITTest(TestCase):
         self.assertEqual(settled_list.json(), [])
 
     def test_gross_net_fee_stored_exactly(self):
-        recv_payload = {
-            "gross_amount": "100.00",
-            "net_amount": "97.70",
-            "fee_amount": "2.30",
-        }
-        self._post_transaction(receivable_payload=recv_payload)
+        self._post_transaction(settlement_date="2026-05-01")
 
         recv_list = self.client.get(f"/entities/{self.entity_id}/receivables")
         data = recv_list.json()[0]

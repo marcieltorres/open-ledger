@@ -5,7 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict
 
 from src.model.enums import Currency, EntryType, ReferenceType, TransactionStatus, TransactionType
-from src.model.schemas.receivables import ReceivableCreate, ReceivableResponse
+from src.model.schemas.receivables import ReceivableResponse
 
 
 class TransactionEntryCreate(BaseModel):
@@ -46,7 +46,7 @@ class TransactionCreate(BaseModel):
     reference_type: ReferenceType | None = None
     description: str | None = None
     custom_data: dict | None = None
-    receivable: ReceivableCreate | None = None
+    expected_settlement_date: date | None = None
 
 
 class TransactionResponse(BaseModel):
