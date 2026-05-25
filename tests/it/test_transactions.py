@@ -26,7 +26,7 @@ def _make_account(session, entity_id):
         entity_id=entity_id,
         code=f"1.1.{uuid4().hex[:3]}",
         name="Test Account",
-        account_type=AccountType.asset,
+        account_type=AccountType.ASSET,
         currency="BRL",
     )
     session.add(account)

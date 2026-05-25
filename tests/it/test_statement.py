@@ -25,13 +25,13 @@ def _make_entity(session) -> Entity:
 def _provision_accounts(session, entity_id) -> dict[str, ChartOfAccounts]:
     accounts = [
         ChartOfAccounts(entity_id=entity_id, code="1.1.001", name="Receivables",
-                        account_type=AccountType.asset, currency="BRL"),
+                        account_type=AccountType.ASSET, currency="BRL"),
         ChartOfAccounts(entity_id=entity_id, code="3.1.001", name="Revenue",
-                        account_type=AccountType.revenue, currency="BRL"),
+                        account_type=AccountType.REVENUE, currency="BRL"),
         ChartOfAccounts(entity_id=entity_id, code="9.9.902", name="World/CIP-PIX",
-                        account_type=AccountType.asset, currency="BRL"),
+                        account_type=AccountType.ASSET, currency="BRL"),
         ChartOfAccounts(entity_id=entity_id, code="9.9.999", name="World",
-                        account_type=AccountType.asset, currency="BRL"),
+                        account_type=AccountType.ASSET, currency="BRL"),
     ]
     for a in accounts:
         session.add(a)

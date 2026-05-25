@@ -24,7 +24,7 @@ def _provision_entity_accounts(session, entity_id, include_transfer: bool = True
     accounts = [
         ChartOfAccounts(
             entity_id=entity_id, code="1.1.001", name="Checking",
-            account_type=AccountType.asset, currency="BRL",
+            account_type=AccountType.ASSET, currency="BRL",
             current_balance=Decimal("500.00"),
         ),
     ]
@@ -32,7 +32,7 @@ def _provision_entity_accounts(session, entity_id, include_transfer: bool = True
         accounts.append(
             ChartOfAccounts(
                 entity_id=entity_id, code="9.9.998", name="Transfer",
-                account_type=AccountType.asset, currency="BRL",
+                account_type=AccountType.ASSET, currency="BRL",
             )
         )
     for a in accounts:
