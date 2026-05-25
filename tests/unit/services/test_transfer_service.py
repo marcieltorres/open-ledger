@@ -154,9 +154,9 @@ class TransferEntriesTest(TestCase):
         sender_txn_create = sender_call_args[0][1]
         entries = {e.account_code: e for e in sender_txn_create.entries}
 
-        self.assertEqual(entries[ACC_TRANSFER].entry_type, "debit")
+        self.assertEqual(entries[ACC_TRANSFER].entry_type, "DEBIT")
         self.assertEqual(entries[ACC_TRANSFER].amount, Decimal("100.00"))
-        self.assertEqual(entries[ACC_RECEIVABLES].entry_type, "credit")
+        self.assertEqual(entries[ACC_RECEIVABLES].entry_type, "CREDIT")
         self.assertEqual(entries[ACC_RECEIVABLES].amount, Decimal("100.00"))
 
     def test_receiver_entries_checking_debit_transfer_credit(self):
@@ -167,9 +167,9 @@ class TransferEntriesTest(TestCase):
         receiver_txn_create = receiver_call_args[0][1]
         entries = {e.account_code: e for e in receiver_txn_create.entries}
 
-        self.assertEqual(entries[ACC_RECEIVABLES].entry_type, "debit")
+        self.assertEqual(entries[ACC_RECEIVABLES].entry_type, "DEBIT")
         self.assertEqual(entries[ACC_RECEIVABLES].amount, Decimal("100.00"))
-        self.assertEqual(entries[ACC_TRANSFER].entry_type, "credit")
+        self.assertEqual(entries[ACC_TRANSFER].entry_type, "CREDIT")
         self.assertEqual(entries[ACC_TRANSFER].amount, Decimal("100.00"))
 
     def test_transfer_net_across_entities_is_zero(self):
@@ -182,8 +182,8 @@ class TransferEntriesTest(TestCase):
         all_transfer_entries = [
             e for e in sender_entries + receiver_entries if e.account_code == ACC_TRANSFER
         ]
-        debit_total = sum(e.amount for e in all_transfer_entries if e.entry_type == "debit")
-        credit_total = sum(e.amount for e in all_transfer_entries if e.entry_type == "credit")
+        debit_total = sum(e.amount for e in all_transfer_entries if e.entry_type == "DEBIT")
+        credit_total = sum(e.amount for e in all_transfer_entries if e.entry_type == "CREDIT")
         self.assertEqual(debit_total, credit_total)
 
     def test_sender_idempotency_key_format(self):

@@ -38,3 +38,29 @@ class ReceivableStatus(str, enum.Enum):
     PENDING = "PENDING"
     SETTLED = "SETTLED"
     CANCELLED = "CANCELLED"
+
+
+class TransactionStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    COMMITTED = "COMMITTED"
+    VOIDED = "VOIDED"
+
+
+class TransactionType(str, enum.Enum):
+    SALE = "SALE"
+    ANTICIPATION = "ANTICIPATION"
+    SETTLEMENT = "SETTLEMENT"
+    DEPOSIT = "DEPOSIT"
+    WITHDRAWAL = "WITHDRAWAL"
+    TRANSFER = "TRANSFER"
+    REVERSAL = "REVERSAL"
+
+
+class EntryType(str, enum.Enum):
+    DEBIT = "DEBIT"
+    CREDIT = "CREDIT"
+
+
+class ReferenceType(str, enum.Enum):
+    RECEIVABLE = "RECEIVABLE"
+    TRANSACTION = "TRANSACTION"

@@ -11,7 +11,7 @@ from src.model.schemas.transactions import TransactionCreate, TransactionEntryCr
 from src.services.transaction import TransactionService
 
 
-def _entry(entry_type: str, amount: str, currency: str = "BRL") -> TransactionEntryCreate:
+def _entry(entry_type: str = "DEBIT", amount: str = "100.00", currency: str = "BRL") -> TransactionEntryCreate:
     return TransactionEntryCreate(
         account_code="1.1.001", entry_type=entry_type, amount=Decimal(amount), currency=currency
     )
@@ -61,34 +61,34 @@ class ComputeDeltaTest(TestCase):
         self.service = _make_service()
 
     def test_asset_debit(self):
-        self.assertEqual(self.service._compute_delta("ASSET", "debit", Decimal("100")), Decimal("100"))
+        self.assertEqual(self.service._compute_delta("ASSET", "DEBIT", Decimal("100")), Decimal("100"))
 
     def test_asset_credit(self):
-        self.assertEqual(self.service._compute_delta("ASSET", "credit", Decimal("100")), Decimal("-100"))
+        self.assertEqual(self.service._compute_delta("ASSET", "CREDIT", Decimal("100")), Decimal("-100"))
 
     def test_expense_debit(self):
-        self.assertEqual(self.service._compute_delta("EXPENSE", "debit", Decimal("100")), Decimal("100"))
+        self.assertEqual(self.service._compute_delta("EXPENSE", "DEBIT", Decimal("100")), Decimal("100"))
 
     def test_expense_credit(self):
-        self.assertEqual(self.service._compute_delta("EXPENSE", "credit", Decimal("100")), Decimal("-100"))
+        self.assertEqual(self.service._compute_delta("EXPENSE", "CREDIT", Decimal("100")), Decimal("-100"))
 
     def test_liability_debit(self):
-        self.assertEqual(self.service._compute_delta("LIABILITY", "debit", Decimal("100")), Decimal("-100"))
+        self.assertEqual(self.service._compute_delta("LIABILITY", "DEBIT", Decimal("100")), Decimal("-100"))
 
     def test_liability_credit(self):
-        self.assertEqual(self.service._compute_delta("LIABILITY", "credit", Decimal("100")), Decimal("100"))
+        self.assertEqual(self.service._compute_delta("LIABILITY", "CREDIT", Decimal("100")), Decimal("100"))
 
     def test_revenue_debit(self):
-        self.assertEqual(self.service._compute_delta("REVENUE", "debit", Decimal("100")), Decimal("-100"))
+        self.assertEqual(self.service._compute_delta("REVENUE", "DEBIT", Decimal("100")), Decimal("-100"))
 
     def test_revenue_credit(self):
-        self.assertEqual(self.service._compute_delta("REVENUE", "credit", Decimal("100")), Decimal("100"))
+        self.assertEqual(self.service._compute_delta("REVENUE", "CREDIT", Decimal("100")), Decimal("100"))
 
     def test_equity_debit(self):
-        self.assertEqual(self.service._compute_delta("EQUITY", "debit", Decimal("100")), Decimal("-100"))
+        self.assertEqual(self.service._compute_delta("EQUITY", "DEBIT", Decimal("100")), Decimal("-100"))
 
     def test_equity_credit(self):
-        self.assertEqual(self.service._compute_delta("EQUITY", "credit", Decimal("100")), Decimal("100"))
+        self.assertEqual(self.service._compute_delta("EQUITY", "CREDIT", Decimal("100")), Decimal("100"))
 
 
 class ValidateDoubleEntryTest(TestCase):
@@ -96,28 +96,28 @@ class ValidateDoubleEntryTest(TestCase):
         self.service = _make_service()
 
     def test_balanced_passes(self):
-        self.service._validate_double_entry([_entry("debit", "100.00"), _entry("credit", "100.00")])
+        self.service._validate_double_entry([_entry("DEBIT", "100.00"), _entry("CREDIT", "100.00")])
 
     def test_imbalanced_raises(self):
         with self.assertRaises(DoubleEntryImbalanceError):
-            self.service._validate_double_entry([_entry("debit", "100.00"), _entry("credit", "90.00")])
+            self.service._validate_double_entry([_entry("DEBIT", "100.00"), _entry("CREDIT", "90.00")])
 
     def test_imbalanced_includes_currency_in_error(self):
         with self.assertRaises(DoubleEntryImbalanceError) as ctx:
-            self.service._validate_double_entry([_entry("debit", "100.00", "USD"), _entry("credit", "90.00", "USD")])
+            self.service._validate_double_entry([_entry("DEBIT", "100.00", "USD"), _entry("CREDIT", "90.00", "USD")])
         self.assertIn("USD", str(ctx.exception))
 
     def test_two_currencies_both_balanced_passes(self):
         self.service._validate_double_entry([
-            _entry("debit", "50.00", "BRL"), _entry("credit", "50.00", "BRL"),
-            _entry("debit", "20.00", "USD"), _entry("credit", "20.00", "USD"),
+            _entry("DEBIT", "50.00", "BRL"), _entry("CREDIT", "50.00", "BRL"),
+            _entry("DEBIT", "20.00", "USD"), _entry("CREDIT", "20.00", "USD"),
         ])
 
     def test_two_currencies_one_imbalanced_raises_correct_currency(self):
         with self.assertRaises(DoubleEntryImbalanceError) as ctx:
             self.service._validate_double_entry([
-                _entry("debit", "50.00", "BRL"), _entry("credit", "50.00", "BRL"),
-                _entry("debit", "20.00", "USD"), _entry("credit", "10.00", "USD"),
+                _entry("DEBIT", "50.00", "BRL"), _entry("CREDIT", "50.00", "BRL"),
+                _entry("DEBIT", "20.00", "USD"), _entry("CREDIT", "10.00", "USD"),
             ])
         self.assertIn("USD", str(ctx.exception))
 
@@ -139,7 +139,7 @@ class ApplyBalanceUpdatesTest(TestCase):
         locked.id = account.id
         self._setup_locked(locked)
 
-        self.service._apply_balance_updates([_make_entry(account, "debit", "50")], [account])
+        self.service._apply_balance_updates([_make_entry(account, "DEBIT", "50")], [account])
 
         self.assertEqual(locked.current_balance, Decimal("150"))
         self.assertEqual(locked.balance_version, 1)
@@ -152,7 +152,7 @@ class ApplyBalanceUpdatesTest(TestCase):
         locked.balance_version = 2
         self._setup_locked(locked)
 
-        self.service._apply_balance_updates([_make_entry(account, "credit", "75")], [account])
+        self.service._apply_balance_updates([_make_entry(account, "CREDIT", "75")], [account])
 
         self.assertEqual(locked.current_balance, Decimal("125"))
         self.assertEqual(locked.balance_version, 3)
@@ -163,7 +163,7 @@ class ApplyBalanceUpdatesTest(TestCase):
         locked.id = account.id
         self._setup_locked(locked)
 
-        self.service._apply_balance_updates([_make_entry(account, "credit", "300")], [account])
+        self.service._apply_balance_updates([_make_entry(account, "CREDIT", "300")], [account])
 
         self.assertEqual(locked.current_balance, Decimal("300"))
 
@@ -173,7 +173,7 @@ class ApplyBalanceUpdatesTest(TestCase):
         locked.id = account.id
         self._setup_locked(locked)
 
-        self.service._apply_balance_updates([_make_entry(account, "debit", "10")], [account])
+        self.service._apply_balance_updates([_make_entry(account, "DEBIT", "10")], [account])
 
         self.session.execute.assert_called_once()
 
@@ -190,7 +190,7 @@ class ApplyBalanceUpdatesTest(TestCase):
         self.session.execute.return_value.scalar_one.side_effect = [locked1, locked2]
 
         self.service._apply_balance_updates(
-            [_make_entry(account1, "debit", "100"), _make_entry(account2, "credit", "100")],
+            [_make_entry(account1, "DEBIT", "100"), _make_entry(account2, "CREDIT", "100")],
             [account1, account2],
         )
 
@@ -209,11 +209,11 @@ class TransactionServicePostTest(TestCase):
 
     def _payload(self):
         return TransactionCreate(
-            transaction_type="sale",
+            transaction_type="SALE",
             effective_date=date(2026, 4, 20),
             entries=[
-                TransactionEntryCreate(account_code="1.1.001", entry_type="debit",  amount=Decimal("100")),
-                TransactionEntryCreate(account_code="3.1.001", entry_type="credit", amount=Decimal("100")),
+                TransactionEntryCreate(account_code="1.1.001", entry_type="DEBIT",  amount=Decimal("100")),
+                TransactionEntryCreate(account_code="3.1.001", entry_type="CREDIT", amount=Decimal("100")),
             ],
         )
 
@@ -224,7 +224,7 @@ class TransactionServicePostTest(TestCase):
         self.service._account_repo.get_by_entity_and_code.return_value = mock_account
 
         mock_txn = MagicMock()
-        mock_txn.status = "pending"
+        mock_txn.status = "PENDING"
         mock_txn.id = uuid4()
 
         with patch("src.services.transaction.Transaction", return_value=mock_txn):
@@ -251,16 +251,16 @@ class VoidTransactionTest(TestCase):
 
     def test_void_pending_sets_status_voided(self):
         txn = MagicMock()
-        txn.status = "pending"
+        txn.status = "PENDING"
         self.service._repo.get_with_entries.return_value = txn
 
         result = self.service.void(uuid4(), uuid4())
 
-        self.assertEqual(result.status, "voided")
+        self.assertEqual(result.status, "VOIDED")
 
     def test_void_committed_raises_invalid_status_transition(self):
         txn = MagicMock()
-        txn.status = "committed"
+        txn.status = "COMMITTED"
         self.service._repo.get_with_entries.return_value = txn
 
         with self.assertRaises(InvalidStatusTransitionError):
@@ -274,7 +274,7 @@ class VoidTransactionTest(TestCase):
 
     def test_void_does_not_call_session_execute(self):
         txn = MagicMock()
-        txn.status = "pending"
+        txn.status = "PENDING"
         self.service._repo.get_with_entries.return_value = txn
 
         self.service.void(uuid4(), uuid4())
@@ -289,16 +289,16 @@ class ComputeDeltaReversalTest(TestCase):
         self.service = _make_service()
 
     def test_debit_original_undone_by_credit_mirror(self):
-        original_delta = self.service._compute_delta("ASSET", "debit", Decimal("100"))
-        mirror_delta = self.service._compute_delta("ASSET", "credit", Decimal("100"))
+        original_delta = self.service._compute_delta("ASSET", "DEBIT", Decimal("100"))
+        mirror_delta = self.service._compute_delta("ASSET", "CREDIT", Decimal("100"))
         self.assertEqual(original_delta + mirror_delta, Decimal("0"))
 
     def test_credit_original_undone_by_debit_mirror(self):
-        original_delta = self.service._compute_delta("REVENUE", "credit", Decimal("100"))
-        mirror_delta = self.service._compute_delta("REVENUE", "debit", Decimal("100"))
+        original_delta = self.service._compute_delta("REVENUE", "CREDIT", Decimal("100"))
+        mirror_delta = self.service._compute_delta("REVENUE", "DEBIT", Decimal("100"))
         self.assertEqual(original_delta + mirror_delta, Decimal("0"))
 
     def test_liability_credit_undone_by_debit_mirror(self):
-        original_delta = self.service._compute_delta("LIABILITY", "credit", Decimal("50"))
-        mirror_delta = self.service._compute_delta("LIABILITY", "debit", Decimal("50"))
+        original_delta = self.service._compute_delta("LIABILITY", "CREDIT", Decimal("50"))
+        mirror_delta = self.service._compute_delta("LIABILITY", "DEBIT", Decimal("50"))
         self.assertEqual(original_delta + mirror_delta, Decimal("0"))

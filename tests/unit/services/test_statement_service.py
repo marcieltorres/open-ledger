@@ -41,11 +41,11 @@ def _make_entry(account: ChartOfAccounts, entry_type: str, amount: str) -> Trans
     return entry
 
 
-def _make_transaction(entity_id=None, effective_date=None, txn_type="sale") -> Transaction:
+def _make_transaction(entity_id=None, effective_date=None, txn_type="SALE") -> Transaction:
     txn = Transaction(
         entity_id=entity_id or uuid4(),
         idempotency_key=str(uuid4()),
-        status="committed",
+        status="COMMITTED",
         transaction_type=txn_type,
         effective_date=effective_date or date(2025, 12, 10),
     )
@@ -64,15 +64,15 @@ def _make_service() -> StatementService:
 
 class AssetDeltaTest(TestCase):
     def test_asset_debit_positive(self):
-        self.assertEqual(_asset_delta("ASSET", "debit", Decimal("100")), Decimal("100"))
+        self.assertEqual(_asset_delta("ASSET", "DEBIT", Decimal("100")), Decimal("100"))
 
     def test_asset_credit_negative(self):
-        self.assertEqual(_asset_delta("ASSET", "credit", Decimal("100")), Decimal("-100"))
+        self.assertEqual(_asset_delta("ASSET", "CREDIT", Decimal("100")), Decimal("-100"))
 
     def test_non_asset_returns_zero(self):
-        self.assertEqual(_asset_delta("REVENUE", "credit", Decimal("100")), Decimal("0"))
-        self.assertEqual(_asset_delta("EXPENSE", "debit", Decimal("100")), Decimal("0"))
-        self.assertEqual(_asset_delta("LIABILITY", "credit", Decimal("50")), Decimal("0"))
+        self.assertEqual(_asset_delta("REVENUE", "CREDIT", Decimal("100")), Decimal("0"))
+        self.assertEqual(_asset_delta("EXPENSE", "DEBIT", Decimal("100")), Decimal("0"))
+        self.assertEqual(_asset_delta("LIABILITY", "CREDIT", Decimal("50")), Decimal("0"))
 
 
 class GetEntityBalanceTest(TestCase):
@@ -143,8 +143,8 @@ class OpeningBalanceTest(TestCase):
         acc = _make_account(account_type=AccountType.ASSET)
         self.service._snapshot_repo.get_latest_before.return_value = None
 
-        entry1 = _make_entry(acc, "debit", "100")
-        entry2 = _make_entry(acc, "credit", "30")
+        entry1 = _make_entry(acc, "DEBIT", "100")
+        entry2 = _make_entry(acc, "CREDIT", "30")
 
         mock_chain = MagicMock()
         mock_chain.join.return_value = mock_chain
@@ -229,9 +229,9 @@ class BuildStatementTest(TestCase):
         self.service._snapshot_repo.get_latest_before.return_value = snap
 
         txn = _make_transaction(entity_id=self.entity_id, effective_date=date(2025, 12, 10))
-        entry_recv = _make_entry(acc_recv, "debit", "100")
+        entry_recv = _make_entry(acc_recv, "DEBIT", "100")
         entry_recv.transaction_id = txn.id
-        entry_rev = _make_entry(acc_rev, "credit", "100")
+        entry_rev = _make_entry(acc_rev, "CREDIT", "100")
         entry_rev.transaction_id = txn.id
 
         c = MagicMock()
@@ -258,10 +258,10 @@ class BuildStatementTest(TestCase):
         self.service._snapshot_repo.get_latest_before.side_effect = [snap, snap2]
 
         # settlement: world debit 100, receivables credit 100 → net asset delta = 0
-        txn = _make_transaction(entity_id=self.entity_id, effective_date=date(2025, 12, 15), txn_type="settlement")
-        entry_world = _make_entry(acc_world, "debit", "100")
+        txn = _make_transaction(entity_id=self.entity_id, effective_date=date(2025, 12, 15), txn_type="SETTLEMENT")
+        entry_world = _make_entry(acc_world, "DEBIT", "100")
         entry_world.transaction_id = txn.id
-        entry_recv = _make_entry(acc_recv, "credit", "100")
+        entry_recv = _make_entry(acc_recv, "CREDIT", "100")
         entry_recv.transaction_id = txn.id
 
         c = MagicMock()
@@ -285,10 +285,10 @@ class BuildStatementTest(TestCase):
         snap = AccountBalanceSnapshot(account_id=acc_recv.id, snapshot_date=date(2025, 11, 30), balance=Decimal("100"))
         self.service._snapshot_repo.get_latest_before.return_value = snap
 
-        txn = _make_transaction(entity_id=self.entity_id, effective_date=date(2025, 12, 20), txn_type="refund")
-        entry_recv = _make_entry(acc_recv, "credit", "30")
+        txn = _make_transaction(entity_id=self.entity_id, effective_date=date(2025, 12, 20), txn_type="REVERSAL")
+        entry_recv = _make_entry(acc_recv, "CREDIT", "30")
         entry_recv.transaction_id = txn.id
-        entry_rev = _make_entry(acc_rev, "debit", "30")
+        entry_rev = _make_entry(acc_rev, "DEBIT", "30")
         entry_rev.transaction_id = txn.id
 
         c = MagicMock()

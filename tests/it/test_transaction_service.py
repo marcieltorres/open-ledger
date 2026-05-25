@@ -14,12 +14,12 @@ from src.model.enums import AccountType, PeriodStatus
 
 _EFFECTIVE_DATE = "2026-04-20"
 _SALE_ENTRIES = [
-    {"account_code": "1.1.001", "entry_type": "debit",  "amount": "100.00", "currency": "BRL"},
-    {"account_code": "3.1.001", "entry_type": "credit", "amount": "100.00", "currency": "BRL"},
-    {"account_code": "4.1.001", "entry_type": "debit",  "amount":   "2.00", "currency": "BRL"},
-    {"account_code": "1.1.001", "entry_type": "credit", "amount":   "2.00", "currency": "BRL"},
-    {"account_code": "4.1.002", "entry_type": "debit",  "amount":   "0.30", "currency": "BRL"},
-    {"account_code": "1.1.001", "entry_type": "credit", "amount":   "0.30", "currency": "BRL"},
+    {"account_code": "1.1.001", "entry_type": "DEBIT",  "amount": "100.00", "currency": "BRL"},
+    {"account_code": "3.1.001", "entry_type": "CREDIT", "amount": "100.00", "currency": "BRL"},
+    {"account_code": "4.1.001", "entry_type": "DEBIT",  "amount":   "2.00", "currency": "BRL"},
+    {"account_code": "1.1.001", "entry_type": "CREDIT", "amount":   "2.00", "currency": "BRL"},
+    {"account_code": "4.1.002", "entry_type": "DEBIT",  "amount":   "0.30", "currency": "BRL"},
+    {"account_code": "1.1.001", "entry_type": "CREDIT", "amount":   "0.30", "currency": "BRL"},
 ]
 
 
@@ -69,7 +69,7 @@ class TransactionPostITTest(TestCase):
 
     def _post(self, entries=None, idempotency_key=None, headers=None):
         payload = {
-            "transaction_type": "sale",
+            "transaction_type": "SALE",
             "effective_date": _EFFECTIVE_DATE,
             "entries": entries or _SALE_ENTRIES,
         }
@@ -96,7 +96,7 @@ class TransactionPostITTest(TestCase):
         self.assertEqual(balances["4.1.002"], Decimal("0.30"))
 
     def test_missing_idempotency_key_returns_422(self):
-        payload = {"transaction_type": "sale", "effective_date": _EFFECTIVE_DATE, "entries": _SALE_ENTRIES}
+        payload = {"transaction_type": "SALE", "effective_date": _EFFECTIVE_DATE, "entries": _SALE_ENTRIES}
         resp = self.client.post(f"/entities/{self.entity_id}/transactions", json=payload)
         self.assertEqual(resp.status_code, 422)
 
@@ -110,8 +110,8 @@ class TransactionPostITTest(TestCase):
 
     def test_currency_mismatch_returns_422(self):
         entries = [
-            {"account_code": "1.1.001", "entry_type": "debit",  "amount": "100.00", "currency": "USD"},
-            {"account_code": "3.1.001", "entry_type": "credit", "amount": "100.00", "currency": "USD"},
+            {"account_code": "1.1.001", "entry_type": "DEBIT",  "amount": "100.00", "currency": "USD"},
+            {"account_code": "3.1.001", "entry_type": "CREDIT", "amount": "100.00", "currency": "USD"},
         ]
         resp = self._post(entries=entries)
         self.assertEqual(resp.status_code, 422)
@@ -119,10 +119,10 @@ class TransactionPostITTest(TestCase):
     def test_closed_period_returns_422(self):
         _close_period(self.db_session, date(2020, 1, 1))
         entries = [
-            {"account_code": "1.1.001", "entry_type": "debit",  "amount": "10.00", "currency": "BRL"},
-            {"account_code": "3.1.001", "entry_type": "credit", "amount": "10.00", "currency": "BRL"},
+            {"account_code": "1.1.001", "entry_type": "DEBIT",  "amount": "10.00", "currency": "BRL"},
+            {"account_code": "3.1.001", "entry_type": "CREDIT", "amount": "10.00", "currency": "BRL"},
         ]
-        payload = {"transaction_type": "sale", "effective_date": "2020-01-01", "entries": entries}
+        payload = {"transaction_type": "SALE", "effective_date": "2020-01-01", "entries": entries}
         resp = self.client.post(
             f"/entities/{self.entity_id}/transactions",
             json=payload,
@@ -132,8 +132,8 @@ class TransactionPostITTest(TestCase):
 
     def test_unknown_account_code_returns_422(self):
         entries = [
-            {"account_code": "9.9.000", "entry_type": "debit",  "amount": "10.00", "currency": "BRL"},
-            {"account_code": "9.9.001", "entry_type": "credit", "amount": "10.00", "currency": "BRL"},
+            {"account_code": "9.9.000", "entry_type": "DEBIT",  "amount": "10.00", "currency": "BRL"},
+            {"account_code": "9.9.001", "entry_type": "CREDIT", "amount": "10.00", "currency": "BRL"},
         ]
         resp = self._post(entries=entries)
         self.assertEqual(resp.status_code, 422)
@@ -159,7 +159,7 @@ class TransactionListGetITTest(TestCase):
     def _post_sale(self):
         return self.client.post(
             f"/entities/{self.entity_id}/transactions",
-            json={"transaction_type": "sale", "effective_date": _EFFECTIVE_DATE, "entries": _SALE_ENTRIES},
+            json={"transaction_type": "SALE", "effective_date": _EFFECTIVE_DATE, "entries": _SALE_ENTRIES},
             headers={"Idempotency-Key": str(uuid4())},
         )
 
