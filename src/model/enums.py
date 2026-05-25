@@ -9,6 +9,14 @@ class AccountTemplate(str, enum.Enum):
     BAAS_CUSTOMER = "BAAS_CUSTOMER"
 
 
+class AccountType(str, enum.Enum):
+    ASSET = "ASSET"
+    LIABILITY = "LIABILITY"
+    REVENUE = "REVENUE"
+    EXPENSE = "EXPENSE"
+    EQUITY = "EQUITY"
+
+
 class ClearingNetwork(str, enum.Enum):
     STR = "STR"
     CIP_PIX = "CIP-PIX"

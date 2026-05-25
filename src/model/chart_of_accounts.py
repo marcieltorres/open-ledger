@@ -1,4 +1,3 @@
-import enum
 from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
@@ -9,15 +8,7 @@ from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.model.base_model import BaseModel
-from src.model.enums import Currency
-
-
-class AccountType(str, enum.Enum):
-    ASSET = "ASSET"
-    LIABILITY = "LIABILITY"
-    REVENUE = "REVENUE"
-    EXPENSE = "EXPENSE"
-    EQUITY = "EQUITY"
+from src.model.enums import AccountType, Currency
 
 
 class ChartOfAccounts(BaseModel):

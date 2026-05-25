@@ -5,7 +5,8 @@ from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 from src.exceptions.transaction import DoubleEntryImbalanceError, InvalidStatusTransitionError, TransactionNotFoundError
-from src.model.chart_of_accounts import AccountType, ChartOfAccounts
+from src.model.chart_of_accounts import ChartOfAccounts
+from src.model.enums import AccountType
 from src.model.schemas.transactions import TransactionCreate, TransactionEntryCreate
 from src.services.transaction import TransactionService
 

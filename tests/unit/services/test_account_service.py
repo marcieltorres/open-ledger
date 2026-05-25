@@ -4,8 +4,8 @@ from uuid import uuid4
 
 from src.exceptions.account import AccountNotFoundError, InvalidTemplateError
 from src.exceptions.entity import EntityNotFoundError
-from src.model.chart_of_accounts import AccountType, ChartOfAccounts
-from src.model.enums import AccountTemplate
+from src.model.chart_of_accounts import ChartOfAccounts
+from src.model.enums import AccountTemplate, AccountType
 from src.model.schemas.accounts import AccountCreate, AccountProvision, AccountUpdate
 from src.services.account import AccountService
 

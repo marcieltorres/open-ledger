@@ -8,8 +8,9 @@ from fastapi.testclient import TestClient
 from src.api import app
 from src.config.database import get_db
 from src.model.account_balance_snapshot import AccountBalanceSnapshot
-from src.model.chart_of_accounts import AccountType, ChartOfAccounts
+from src.model.chart_of_accounts import ChartOfAccounts
 from src.model.entity import Entity
+from src.model.enums import AccountType
 
 _DATE = "2025-12-10"
 

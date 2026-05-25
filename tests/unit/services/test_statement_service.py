@@ -6,7 +6,8 @@ from uuid import uuid4
 
 from src.exceptions.entity import EntityNotFoundError
 from src.model.account_balance_snapshot import AccountBalanceSnapshot
-from src.model.chart_of_accounts import AccountType, ChartOfAccounts
+from src.model.chart_of_accounts import ChartOfAccounts
+from src.model.enums import AccountType
 from src.model.schemas.statement import EntityBalanceResponse
 from src.model.transaction import Transaction
 from src.model.transaction_entry import TransactionEntry

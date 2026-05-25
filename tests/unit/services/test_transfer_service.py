@@ -5,9 +5,10 @@ from unittest.mock import MagicMock
 from uuid import uuid4
 
 from src.exceptions.transfer import TransferAccountNotFoundError, TransferEntityNotFoundError
-from src.model.chart_of_accounts import AccountType, ChartOfAccounts
+from src.model.chart_of_accounts import ChartOfAccounts
 from src.model.constants.account_codes import ACC_RECEIVABLES, ACC_TRANSFER
 from src.model.entity import Entity
+from src.model.enums import AccountType
 from src.model.schemas.transfers import TransferCreate
 from src.model.transaction import Transaction
 from src.services.transfer import TransferService

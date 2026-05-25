@@ -4,8 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
-from src.model.chart_of_accounts import AccountType
-from src.model.enums import AccountTemplate, Currency
+from src.model.enums import AccountTemplate, AccountType, Currency
 
 
 class AccountCreate(BaseModel):

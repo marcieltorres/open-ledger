@@ -1,7 +1,6 @@
 from src.exceptions.account import InvalidTemplateError
-from src.model.chart_of_accounts import AccountType
 from src.model.constants.account_codes import ACC_ANTICIPATION_FEE, ACC_RECEIVABLES, ACC_RECEIVABLES_ANTICIPATED
-from src.model.enums import AccountTemplate, Currency
+from src.model.enums import AccountTemplate, AccountType, Currency
 from src.model.schemas.accounts import AccountCreate
 
 _COMMON = [
