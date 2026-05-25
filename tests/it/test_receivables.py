@@ -12,12 +12,12 @@ from src.model.enums import AccountType
 
 _EFFECTIVE_DATE = "2026-04-21"
 _SALE_ENTRIES = [
-    {"account_code": "1.1.001", "entry_type": "debit",  "amount": "100.00", "currency": "BRL"},
-    {"account_code": "3.1.001", "entry_type": "credit", "amount": "100.00", "currency": "BRL"},
-    {"account_code": "4.1.001", "entry_type": "debit",  "amount":   "2.00", "currency": "BRL"},
-    {"account_code": "1.1.001", "entry_type": "credit", "amount":   "2.00", "currency": "BRL"},
-    {"account_code": "4.1.002", "entry_type": "debit",  "amount":   "0.30", "currency": "BRL"},
-    {"account_code": "1.1.001", "entry_type": "credit", "amount":   "0.30", "currency": "BRL"},
+    {"account_code": "1.1.001", "entry_type": "DEBIT",  "amount": "100.00", "currency": "BRL"},
+    {"account_code": "3.1.001", "entry_type": "CREDIT", "amount": "100.00", "currency": "BRL"},
+    {"account_code": "4.1.001", "entry_type": "DEBIT",  "amount":   "2.00", "currency": "BRL"},
+    {"account_code": "1.1.001", "entry_type": "CREDIT", "amount":   "2.00", "currency": "BRL"},
+    {"account_code": "4.1.002", "entry_type": "DEBIT",  "amount":   "0.30", "currency": "BRL"},
+    {"account_code": "1.1.001", "entry_type": "CREDIT", "amount":   "0.30", "currency": "BRL"},
 ]
 
 
@@ -57,7 +57,7 @@ class ReceivableCreateITTest(TestCase):
 
     def _post_transaction(self, receivable_payload=None, idempotency_key=None):
         payload = {
-            "transaction_type": "sale",
+            "transaction_type": "SALE",
             "effective_date": _EFFECTIVE_DATE,
             "entries": _SALE_ENTRIES,
         }

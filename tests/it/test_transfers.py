@@ -105,8 +105,8 @@ class TransferITTest(TestCase):
         body = resp.json()
         self.assertIn("sender_transaction", body)
         self.assertIn("receiver_transaction", body)
-        self.assertEqual(body["sender_transaction"]["transaction_type"], "transfer")
-        self.assertEqual(body["receiver_transaction"]["transaction_type"], "transfer")
+        self.assertEqual(body["sender_transaction"]["transaction_type"], "TRANSFER")
+        self.assertEqual(body["receiver_transaction"]["transaction_type"], "TRANSFER")
         self.assertEqual(body["sender_transaction"]["entity_id"], str(self.sender.id))
         self.assertEqual(body["receiver_transaction"]["entity_id"], str(self.receiver.id))
 

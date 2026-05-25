@@ -82,11 +82,11 @@ class TransactionLifecycleFullFlowTest(TestCase):
 
     def _post_sale(self, recv_payload=None, idem_key=None):
         payload = {
-            "transaction_type": "sale",
+            "transaction_type": "SALE",
             "effective_date": _EFFECTIVE_DATE,
             "entries": [
-                {"account_code": "1.1.001", "entry_type": "debit",  "amount": "97.70", "currency": "BRL"},
-                {"account_code": "3.1.001", "entry_type": "credit", "amount": "97.70", "currency": "BRL"},
+                {"account_code": "1.1.001", "entry_type": "DEBIT",  "amount": "97.70", "currency": "BRL"},
+                {"account_code": "3.1.001", "entry_type": "CREDIT", "amount": "97.70", "currency": "BRL"},
             ],
         }
         if recv_payload:
@@ -121,7 +121,7 @@ class TransactionLifecycleFullFlowTest(TestCase):
             headers={"Idempotency-Key": str(uuid4())},
         )
         self.assertEqual(ant_resp.status_code, 201)
-        self.assertEqual(ant_resp.json()["transaction_type"], "anticipation")
+        self.assertEqual(ant_resp.json()["transaction_type"], "ANTICIPATION")
 
         sett_resp = self.client.post(
             f"/entities/{self.entity_id}/settlements",
@@ -134,7 +134,7 @@ class TransactionLifecycleFullFlowTest(TestCase):
             headers={"Idempotency-Key": str(uuid4())},
         )
         self.assertEqual(sett_resp.status_code, 201)
-        self.assertEqual(sett_resp.json()["transaction_type"], "settlement")
+        self.assertEqual(sett_resp.json()["transaction_type"], "SETTLEMENT")
 
         recv_detail = self.client.get(f"/entities/{self.entity_id}/receivables/{recv_id}")
         self.assertEqual(recv_detail.json()["status"], "SETTLED")
@@ -238,11 +238,11 @@ class TransactionLifecycleErrorHandlingTest(TestCase):
         self.client.post(
             f"/entities/{self.entity_id}/transactions",
             json={
-                "transaction_type": "sale",
+                "transaction_type": "SALE",
                 "effective_date": _EFFECTIVE_DATE,
                 "entries": [
-                    {"account_code": "1.1.001", "entry_type": "debit",  "amount": "97.70", "currency": "BRL"},
-                    {"account_code": "3.1.001", "entry_type": "credit", "amount": "97.70", "currency": "BRL"},
+                    {"account_code": "1.1.001", "entry_type": "DEBIT",  "amount": "97.70", "currency": "BRL"},
+                    {"account_code": "3.1.001", "entry_type": "CREDIT", "amount": "97.70", "currency": "BRL"},
                 ],
                 "receivable": {"gross_amount": "100.00", "net_amount": "97.70", "fee_amount": "2.30"},
             },
@@ -286,7 +286,7 @@ class DepositWithdrawalTest(TestCase):
             headers={"Idempotency-Key": str(uuid4())},
         )
         self.assertEqual(resp.status_code, 201)
-        self.assertEqual(resp.json()["transaction_type"], "deposit")
+        self.assertEqual(resp.json()["transaction_type"], "DEPOSIT")
 
         checking = _get_balance(self.db_session, self.entity.id, "1.1.001")
         world = _get_balance(self.db_session, self.entity.id, "9.9.999")
@@ -317,7 +317,7 @@ class DepositWithdrawalTest(TestCase):
             headers={"Idempotency-Key": str(uuid4())},
         )
         self.assertEqual(resp.status_code, 201)
-        self.assertEqual(resp.json()["transaction_type"], "withdrawal")
+        self.assertEqual(resp.json()["transaction_type"], "WITHDRAWAL")
 
         checking = _get_balance(self.db_session, self.entity.id, "1.1.001")
         world = _get_balance(self.db_session, self.entity.id, "9.9.999")
@@ -359,9 +359,9 @@ class VoidTransactionITTest(TestCase):
         txn = Transaction(
             entity_id=self.entity.id,
             idempotency_key=str(uuid4()),
-            transaction_type="sale",
+            transaction_type="SALE",
             effective_date=date.fromisoformat(_EFFECTIVE_DATE),
-            status="pending",
+            status="PENDING",
         )
         self.db_session.add(txn)
         self.db_session.flush()
@@ -379,7 +379,7 @@ class VoidTransactionITTest(TestCase):
         txn = self._create_pending_transaction()
         resp = self.client.post(f"/entities/{self.entity_id}/transactions/{txn.id}/void")
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.json()["status"], "voided")
+        self.assertEqual(resp.json()["status"], "VOIDED")
 
     def test_void_pending_transaction_leaves_balances_unchanged(self):
         txn = self._create_pending_transaction()
@@ -433,7 +433,7 @@ class ReverseTransactionITTest(TestCase):
             headers={"Idempotency-Key": str(uuid4())},
         )
         self.assertEqual(resp.status_code, 201)
-        self.assertEqual(resp.json()["transaction_type"], "reversal")
+        self.assertEqual(resp.json()["transaction_type"], "REVERSAL")
 
         checking_after = _get_balance(self.db_session, self.entity.id, "1.1.001")
         self.assertEqual(checking_after, Decimal("0.00"))
@@ -451,11 +451,11 @@ class ReverseTransactionITTest(TestCase):
         sale_resp = self.client.post(
             f"/entities/{self.entity_id}/transactions",
             json={
-                "transaction_type": "sale",
+                "transaction_type": "SALE",
                 "effective_date": _EFFECTIVE_DATE,
                 "entries": [
-                    {"account_code": "1.1.001", "entry_type": "debit",  "amount": "97.70", "currency": "BRL"},
-                    {"account_code": "3.1.001", "entry_type": "credit", "amount": "97.70", "currency": "BRL"},
+                    {"account_code": "1.1.001", "entry_type": "DEBIT",  "amount": "97.70", "currency": "BRL"},
+                    {"account_code": "3.1.001", "entry_type": "CREDIT", "amount": "97.70", "currency": "BRL"},
                 ],
                 "receivable": {
                     "gross_amount": "100.00", "net_amount": "97.70", "fee_amount": "2.30",
@@ -491,11 +491,11 @@ class ReverseTransactionITTest(TestCase):
         sale_resp = self.client.post(
             f"/entities/{self.entity_id}/transactions",
             json={
-                "transaction_type": "sale",
+                "transaction_type": "SALE",
                 "effective_date": _EFFECTIVE_DATE,
                 "entries": [
-                    {"account_code": "1.1.001", "entry_type": "debit",  "amount": "97.70", "currency": "BRL"},
-                    {"account_code": "3.1.001", "entry_type": "credit", "amount": "97.70", "currency": "BRL"},
+                    {"account_code": "1.1.001", "entry_type": "DEBIT",  "amount": "97.70", "currency": "BRL"},
+                    {"account_code": "3.1.001", "entry_type": "CREDIT", "amount": "97.70", "currency": "BRL"},
                 ],
                 "receivable": {"gross_amount": "100.00", "net_amount": "97.70", "fee_amount": "2.30"},
             },
