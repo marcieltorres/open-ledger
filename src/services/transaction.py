@@ -19,7 +19,7 @@ from src.model.constants.account_codes import (
     ACC_RECEIVABLES_ANTICIPATED,
     WORLD_ACCOUNTS,
 )
-from src.model.enums import ClearingNetwork, Currency
+from src.model.enums import AccountType, ClearingNetwork, Currency
 from src.model.schemas.anticipations import AnticipationCreate
 from src.model.schemas.deposits import DepositCreate
 from src.model.schemas.reversals import ReversalCreate
@@ -52,7 +52,7 @@ class TransactionService:
 
     def _compute_delta(self, account_type: str, entry_type: str, amount: Decimal) -> Decimal:
         """Returns the delta to apply to current_balance based on account and entry type."""
-        increases_on_debit = account_type in ("ASSET", "EXPENSE")
+        increases_on_debit = account_type in (AccountType.ASSET, AccountType.EXPENSE)
         if increases_on_debit:
             return amount if entry_type == "debit" else -amount
         return -amount if entry_type == "debit" else amount

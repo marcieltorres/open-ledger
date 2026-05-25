@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from src.exceptions.entity import EntityNotFoundError
 from src.model.chart_of_accounts import ChartOfAccounts
 from src.model.entity import Entity
+from src.model.enums import AccountType
 from src.model.schemas.statement import (
     BalanceBreakdownItem,
     EntityBalanceResponse,
@@ -25,7 +26,7 @@ from src.repositories.snapshot import SnapshotRepository
 
 def _asset_delta(account_type: str, entry_type: str, amount: Decimal) -> Decimal:
     """Returns net asset position change: only asset accounts count, debit=+, credit=-."""
-    if account_type != "ASSET":
+    if account_type != AccountType.ASSET:
         return Decimal(0)
     return amount if entry_type == "debit" else -amount
 
@@ -42,7 +43,7 @@ class StatementService:
             raise EntityNotFoundError(f"Entity '{entity_id}' not found")
 
     def _opening_balance_for_account(self, account: ChartOfAccounts, start_date: date) -> Decimal:
-        if account.account_type != "ASSET":
+        if account.account_type != AccountType.ASSET:
             return Decimal(0)
 
         snapshot = self._snapshot_repo.get_latest_before(account.id, start_date)
@@ -67,7 +68,7 @@ class StatementService:
     def get_entity_balance(self, entity_id: UUID, as_of: date | None) -> EntityBalanceResponse:
         self._require_entity(entity_id)
         accounts = self._account_repo.get_by_entity(entity_id)
-        asset_accounts = [a for a in accounts if a.account_type == "ASSET"]
+        asset_accounts = [a for a in accounts if a.account_type == AccountType.ASSET]
         effective_date = as_of or date.today()
 
         breakdown = [
