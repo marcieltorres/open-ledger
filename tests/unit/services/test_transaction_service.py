@@ -4,7 +4,12 @@ from unittest import TestCase
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
-from src.exceptions.transaction import DoubleEntryImbalanceError, InvalidStatusTransitionError, TransactionNotFoundError
+from src.exceptions.transaction import (
+    DoubleEntryImbalanceError,
+    InvalidStatusTransitionError,
+    ReceivableInferenceError,
+    TransactionNotFoundError,
+)
 from src.model.chart_of_accounts import ChartOfAccounts
 from src.model.enums import AccountType
 from src.model.schemas.transactions import TransactionCreate, TransactionEntryCreate
@@ -241,6 +246,31 @@ class TransactionServicePostTest(TestCase):
 
         self.assertEqual(result, existing)
         self.session.add.assert_not_called()
+
+    def test_expected_settlement_date_without_revenue_entry_raises_inference_error(self):
+        self.service._repo.get_by_idempotency_key.return_value = None
+        asset_account = MagicMock()
+        asset_account.currency = "BRL"
+        asset_account.account_type = "ASSET"
+        self.service._account_repo.get_by_entity_and_code.return_value = asset_account
+
+        mock_txn = MagicMock()
+        mock_txn.status = "COMMITTED"
+        mock_txn.id = uuid4()
+
+        payload = TransactionCreate(
+            transaction_type="SALE",
+            effective_date=date(2026, 4, 20),
+            expected_settlement_date=date(2026, 5, 20),
+            entries=[
+                TransactionEntryCreate(account_code="1.1.001", entry_type="DEBIT",  amount=Decimal("100")),
+                TransactionEntryCreate(account_code="1.1.002", entry_type="CREDIT", amount=Decimal("100")),
+            ],
+        )
+
+        with patch("src.services.transaction.Transaction", return_value=mock_txn):
+            with self.assertRaises(ReceivableInferenceError):
+                self.service.post(uuid4(), payload, "key-no-revenue")
 
 
 class VoidTransactionTest(TestCase):

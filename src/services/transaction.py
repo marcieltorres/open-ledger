@@ -10,6 +10,7 @@ from src.exceptions.transaction import (
     CurrencyMismatchError,
     DoubleEntryImbalanceError,
     InvalidStatusTransitionError,
+    ReceivableInferenceError,
     TransactionNotFoundError,
 )
 from src.model.chart_of_accounts import ChartOfAccounts
@@ -30,6 +31,7 @@ from src.model.enums import (
 )
 from src.model.schemas.anticipations import AnticipationCreate
 from src.model.schemas.deposits import DepositCreate
+from src.model.schemas.receivables import ReceivableCreate
 from src.model.schemas.reversals import ReversalCreate
 from src.model.schemas.settlements import SettlementCreate
 from src.model.schemas.transactions import TransactionCreate, TransactionEntryCreate
@@ -115,7 +117,7 @@ class TransactionService:
             entity_id=entity_id,
             idempotency_key=idempotency_key,
             status=TransactionStatus.COMMITTED,
-            **payload.model_dump(exclude={"entries", "receivable"}),
+            **payload.model_dump(exclude={"entries", "expected_settlement_date"}),
         )
         self._session.add(transaction)
         self._session.flush()
@@ -130,9 +132,31 @@ class TransactionService:
         if transaction.status != TransactionStatus.PENDING:
             self._apply_balance_updates(payload.entries, accounts)
 
-        if payload.receivable is not None:
-            recv_svc = ReceivableService(self._session)
-            recv_svc.create(entity_id, transaction.id, payload.receivable)
+        if payload.expected_settlement_date is not None:
+            gross = sum(
+                e.amount for e, a in zip(payload.entries, accounts)
+                if a.account_type == AccountType.REVENUE and e.entry_type == EntryType.CREDIT
+            )
+            if gross == 0:
+                raise ReceivableInferenceError(
+                    "expected_settlement_date requires at least one credit entry on a revenue account"
+                )
+            fee = sum(
+                e.amount for e, a in zip(payload.entries, accounts)
+                if a.account_type == AccountType.EXPENSE and e.entry_type == EntryType.DEBIT
+            )
+            net = gross - fee
+            ReceivableService(self._session).create(
+                entity_id,
+                transaction.id,
+                ReceivableCreate(
+                    gross_amount=gross,
+                    fee_amount=fee,
+                    net_amount=net,
+                    expected_settlement_date=payload.expected_settlement_date,
+                    custom_data=payload.custom_data,
+                ),
+            )
 
         return transaction
 
