@@ -192,6 +192,7 @@ run | `make docker/run` | `make local/run` | to run the project
 migration apply | - | `make migration/apply` | to apply new version of migrations
 migration revision | - | `make migration/revision message="text a new message"` | to create a new revision of migrations
 migration downgrade | - | `make migration/downgrade` | to downgrade a version of migrations
+seed | `make docker/db/seed` | `make db/seed` | to populate the local database with sample data — see the [seed README](migration/.seed/README.md)
 build image | `make docker/image/build` | - | to build the production docker image
 build image distroless | `make docker/image/build/distroless` | - | to build the distroless production image
 push image | `make docker/image/push` | - | to push the docker image

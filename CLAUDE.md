@@ -20,7 +20,13 @@ make docker/install         # Build Docker dev image
 # Running
 make local/run              # Run locally (poetry run python run.py)
 make docker/up              # Start docker-compose services
+make docker/up/db-only      # Start only the Postgres service
 make docker/down            # Stop services
+
+# Local seed data
+make db/bootstrap           # db-only + migrations + seed (path for a new dev)
+make db/seed                # Populate the local DB with sample data (idempotent)
+make db/seed/reset          # Wipe seed data and recreate
 
 # Testing
 make local/tests            # Run all tests with 100% coverage enforcement
@@ -81,6 +87,7 @@ The core tables are: `entities`, `chart_of_accounts`, `transactions`, `transacti
 - **Unit tests** (`tests/unit/`) — no database, fast
 - **Integration tests** (`tests/it/`) — spin up a real PostgreSQL 13.3 container via testcontainers; each test function gets an isolated session with automatic rollback
 - 100% coverage is required (`fail_under = 100` in `pyproject.toml`)
+- **`migration/.seed/`** — dev tooling, not a test fixture: populates the local DB through the real services (`make db/seed`). Tests never use it; they keep their isolated testcontainers session. See `migration/.seed/README.md`
 
 ### Docker
 Multi-stage `Dockerfile` with three targets:
