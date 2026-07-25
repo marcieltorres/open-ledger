@@ -47,3 +47,6 @@ docker-compose.yml
 tests
 Makefile
 env.template
+
+# Seed (Database)
+migration/.seed/

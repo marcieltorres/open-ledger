@@ -14,9 +14,11 @@ ifneq (,$(wildcard ./.env))
 endif
 
 APP_NAME="open-ledger"
+DB_NAME="open-ledger-db"
 IMAGE_NAME="open-ledger"
 VERSION="latest"
 MAIN_ENTRYPOINT="run.py"
+SEED_ENTRYPOINT="migration/.seed/seed.py"
 
 ################################
 # COMMANDS TO RUN LOCALLY
@@ -40,6 +42,29 @@ local/lint/fix:
 local/run:
 	poetry run python ${MAIN_ENTRYPOINT}
 
+##########################################
+# COMMANDS TO SEED THE LOCAL DATABASE
+##########################################
+
+db/seed:
+	poetry run python ${SEED_ENTRYPOINT}
+
+db/seed/reset:
+	poetry run python ${SEED_ENTRYPOINT} --reset
+
+db/wait:
+	@printf "waiting for ${DB_NAME}"
+	@for i in $$(seq 1 30); do \
+		if $(DOCKER_COMPOSE) exec -T ${DB_NAME} pg_isready -q -U ${DATABASE_USER}; then echo " ready"; exit 0; fi; \
+		printf "."; sleep 1; \
+	done; \
+	echo " timeout"; exit 1
+
+db/bootstrap: docker/up/db-only db/wait migration/apply db/seed
+
+docker/db/seed:
+	$(DOCKER_COMPOSE) run ${APP_NAME} poetry run python ${SEED_ENTRYPOINT}
+
 ############################################
 # COMMANDS TO RUN USING DOCKER (RECOMMENDED)
 ############################################
@@ -49,6 +74,9 @@ docker/install: generate-default-env-file
 
 docker/up: generate-default-env-file
 	$(DOCKER_COMPOSE) up -d
+
+docker/up/db-only: generate-default-env-file
+	$(DOCKER_COMPOSE) up -d ${DB_NAME}
 
 docker/down:
 	$(DOCKER_COMPOSE) down --remove-orphans
