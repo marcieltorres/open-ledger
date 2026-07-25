@@ -48,12 +48,11 @@ WORKDIR /src
 
 COPY --from=dependencies /deps /usr/local/lib/python3.14/site-packages
 
-COPY src src
-COPY settings.conf src
-COPY logging.conf src
-COPY run.py src
-COPY migration src
-COPY alembic.ini src
+COPY src ./src
+COPY migration ./migration
+COPY settings.conf logging.conf run.py alembic.ini ./
+
+ENTRYPOINT ["python", "run.py"]
 
 # =============================================================================
 # PRODUCTION DISTROLESS - Ultra minimal with Chainguard (Python 3.14)
